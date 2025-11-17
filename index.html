@@ -694,22 +694,10 @@
   let heroIndex = 0;
   const heroTextEl = document.getElementById("changingText");
   heroTextEl.textContent = heroMessages[heroIndex];
-  function slideHeroText() {
-    heroTextEl.style.transition = "transform 0.8s ease-in-out, opacity 0.8s ease-in-out";
-    heroTextEl.style.transform = "translateX(-100%)";
-    heroTextEl.style.opacity = "0";
-    setTimeout(() => {
-      heroIndex = (heroIndex + 1) % heroMessages.length;
-      heroTextEl.textContent = heroMessages[heroIndex];
-      heroTextEl.style.transition = "none";
-      heroTextEl.style.transform = "translateX(100%)";
-      void heroTextEl.offsetWidth;
-      heroTextEl.style.transition = "transform 0.8s ease-in-out, opacity 0.8s ease-in-out";
-      heroTextEl.style.transform = "translateX(0)";
-      heroTextEl.style.opacity = "1";
-    }, 800);
-  }
-  setInterval(slideHeroText, 5500);
+  setInterval(() => {
+    heroIndex = (heroIndex + 1) % heroMessages.length;
+    heroTextEl.textContent = heroMessages[heroIndex];
+  }, 5000);
 
   // ===== Firebase setup =====
   const firebaseConfig = {
@@ -718,12 +706,18 @@
     projectId: "muni-lf-hub",
     storageBucket: "muni-lf-hub.appspot.com",
     messagingSenderId: "400377697268",
-    appId: "1:400377697268:web:52726a678e8c19ee97dfa1",
-    measurementId: "G-85THF0LN41"
+    appId: "1:400377697268:web:52726a678e8c19ee97dfa1"
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const storage = firebase.storage();
+
+  // ===== Demo items =====
+  let demoItems = [
+    { id: "demo1", type: "Water Bottles", status: "Found", title: "Blue Hydro Flask", description: "Found near the library entrance.", location: "Main Library", date: "2023-10-15", contact: "library@muni.edu", image: "water bottle.webp" },
+    { id: "demo2", type: "Books & Notes", status: "Lost", title: "Calculus Textbook", description: "Lost my calculus textbook near math building.", location: "Math Building", date: "2023-10-14", contact: "john.doe@student.muni.edu", image: "calculus.webp" },
+    { id: "demo3", type: "Electronics", status: "Found", title: "Wireless Earbuds", description: "Found black earbuds in cafeteria.", location: "Cafeteria", date: "2023-10-13", contact: "cafeteria@muni.edu", image: "earbuds.jpg" }
+  ];
 
   // ===== DOM refs =====
   const itemsGrid = document.getElementById("itemsGrid");
@@ -731,12 +725,7 @@
   const searchInput = document.getElementById("searchInput");
   const filterType = document.getElementById("filterType");
   const filterStatus = document.getElementById("filterStatus");
-  const itemModal = document.getElementById("itemModal");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalContent = document.getElementById("modalContent");
-  const closeModal = document.querySelector(".close-modal");
   const authModal = document.getElementById("authModal");
-  const closeAuth = document.querySelector(".close-auth");
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
   const authEmail = document.getElementById("authEmail");
@@ -749,20 +738,17 @@
   // ===== Config: Admin email =====
   const ADMIN_EMAIL = "admin@munilf.com";
 
-  // ===== UI helpers =====
-  function showToast(message) {
-    toastMessage.textContent = message;
+  // ===== Helpers =====
+  function showToast(msg) {
+    toastMessage.textContent = msg;
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 3000);
   }
-  function formatDate(dateString) {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  }
-  function isAdmin(user) {
-    return user && user.email === ADMIN_EMAIL;
-  }
-  function updateUserUI(user) {
+  function isAdmin(user) { return user && user.email === ADMIN_EMAIL; }
+  function canDeleteItem(user, item) { return user && (isAdmin(user) || item.createdBy === user.email); }
+
+  // ===== Auth =====
+  firebase.auth().onAuthStateChanged(user => {
     if (user) {
       userDisplay.textContent = user.email;
       logoutLink.style.display = "inline";
@@ -770,242 +756,130 @@
       userDisplay.textContent = "";
       logoutLink.style.display = "none";
     }
-  }
-  function requireAuth(callback) {
-    const user = firebase.auth().currentUser;
-    if (user) callback();
-    else authModal.style.display = "flex";
-  }
-
-  // ===== Auth (Firebase only) =====
-  firebase.auth().onAuthStateChanged(user => {
-    updateUserUI(user);
-    applyFiltersAndRender(); // re-render to show/hide admin/owner buttons appropriately
+    applyFiltersAndRender();
   });
 
-  // Optional: quick admin login helper in UI if you want a one-click for testing
-  // document.querySelector('#loginAdmin')?.addEventListener('click', () => {
-  //   firebase.auth().signInWithEmailAndPassword("admin@munilf.com", "odb2012#")
-  //     .then(() => showToast("Admin logged in"))
-  //     .catch(err => showToast(err.message));
-  // });
+  signupBtn.onclick = () => {
+    firebase.auth().createUserWithEmailAndPassword(authEmail.value, authPassword.value)
+      .then(() => { showToast("Registered"); authModal.style.display = "none"; })
+      .catch(e => showToast(e.message));
+  };
+  loginBtn.onclick = () => {
+    firebase.auth().signInWithEmailAndPassword(authEmail.value, authPassword.value)
+      .then(() => { showToast("Logged in"); authModal.style.display = "none"; })
+      .catch(e => showToast(e.message));
+  };
+  logoutLink.onclick = (e) => { e.preventDefault(); firebase.auth().signOut(); };
 
-  signupBtn.addEventListener("click", () => {
-    const email = authEmail.value.trim();
-    const password = authPassword.value;
-    if (!email || !password) return showToast("Provide email and password.");
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then(({ user }) => {
-        showToast("User registered!");
-        updateUserUI(user);
-        authModal.style.display = "none";
-      })
-      .catch(err => showToast(err.message));
-  });
-
-  loginBtn.addEventListener("click", () => {
-    const email = authEmail.value.trim();
-    const password = authPassword.value;
-    if (!email || !password) return showToast("Provide email and password.");
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(({ user }) => {
-        showToast("Logged in!");
-        updateUserUI(user);
-        authModal.style.display = "none";
-      })
-      .catch(err => showToast(err.message));
-  });
-
-  logoutLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    firebase.auth().signOut()
-      .then(() => {
-        showToast("Logged out!");
-        updateUserUI(null);
-      })
-      .catch(err => showToast(err.message));
-  });
-
-  closeAuth.addEventListener("click", () => authModal.style.display = "none");
-  window.addEventListener("click", (e) => { if (e.target === authModal) authModal.style.display = "none"; });
-
-  // ===== Item details modal =====
-  function showItemDetails(item) {
-    modalTitle.textContent = item.title;
-    modalContent.innerHTML = `
-      <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
-        <div style="flex:1;">
-          <img src="${item.image || 'view.jpg'}" alt="${item.title}" style="width:100%;border-radius:8px;">
-        </div>
-        <div style="flex:2;">
-          <p><strong>Type:</strong> ${item.type}</p>
-          <p><strong>Status:</strong> ${item.status}</p>
-          <p><strong>Location:</strong> ${item.location}</p>
-          <p><strong>Date:</strong> ${formatDate(item.date)}</p>
-          <p><strong>Contact:</strong> ${item.contact}</p>
-          <p><strong>Reported by:</strong> ${item.createdBy || "Unknown"}</p>
-        </div>
-      </div>
-      <div>
-        <h3 style="margin-bottom:0.5rem;">Description</h3>
-        <p>${item.description}</p>
-      </div>
-    `;
-    itemModal.style.display = "flex";
+  function requireAuth(cb) {
+    const u = firebase.auth().currentUser;
+    if (u) cb(); else authModal.style.display = "flex";
   }
-  closeModal.addEventListener("click", () => itemModal.style.display = "none");
-  window.addEventListener("click", (e) => { if (e.target === itemModal) itemModal.style.display = "none"; });
 
-  // ===== Items rendering with admin/owner controls =====
-  let itemsCache = [];
-  function canDeleteItem(user, item) {
-    if (!user) return false;
-    return isAdmin(user) || (item.createdBy && item.createdBy === user.email);
-  }
+  // ===== Items rendering =====
+  let firestoreItems = [];
   function renderItems(items) {
     itemsGrid.innerHTML = "";
+    const user = firebase.auth().currentUser;
     if (!items.length) {
-      itemsGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:2rem;">No items found.</p>';
+      itemsGrid.innerHTML = "<p>No items found.</p>";
       return;
     }
-    const currentUser = firebase.auth().currentUser;
-
     items.forEach(item => {
       const card = document.createElement("div");
       card.className = "item-card fade-in";
       card.innerHTML = `
-        <div class="item-image">
-          <img src="${item.image || 'view.jpg'}" alt="${item.title}">
-        </div>
+        <div class="item-image"><img src="${item.image || 'view.jpg'}" alt="${item.title}"></div>
         <div class="item-details">
-          <h3 class="item-title">${item.title}</h3>
-          <div class="item-meta">
-            <span class="item-type">${item.type}</span>
-            <span class="item-status">${item.status}</span>
-          </div>
-          <p class="item-description">${(item.description || "").slice(0, 120)}${item.description && item.description.length > 120 ? "..." : ""}</p>
+          <h3>${item.title}</h3>
+          <div class="item-meta"><span>${item.type}</span><span>${item.status}</span></div>
+          <p>${item.description}</p>
           <div class="item-contact">
-            <span class="contact-info">Contact: ${item.contact}</span>
-            <div style="display:flex;gap:.5rem;">
-              <button class="claim-btn">${item.status === "Found" ? "Claim" : "Contact Finder"}</button>
-              ${canDeleteItem(currentUser, item) ? `<button class="delete-btn" style="background-color:var(--accent);color:white;">Delete</button>` : ""}
+            <span>${item.contact}</span>
+            <div>
+              <button class="claim-btn">Claim</button>
+              ${canDeleteItem(user, item) ? `<button class="delete-btn">Delete</button>` : ""}
             </div>
           </div>
-        </div>
-      `;
-
-      // View details
-      card.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("claim-btn") && !e.target.classList.contains("delete-btn")) {
-          showItemDetails(item);
-        }
-      });
-
-      // Claim / contact
-      card.querySelector(".claim-btn").addEventListener("click", (e) => {
+        </div>`;
+      // Claim
+      card.querySelector(".claim-btn").onclick = (e) => {
         e.stopPropagation();
-        requireAuth(() => showToast(`Contact information: ${item.contact}`));
-      });
-
-      // Delete (admin or owner)
+        requireAuth(() => showToast(`Contact: ${item.contact}`));
+      };
+      // Delete
       const delBtn = card.querySelector(".delete-btn");
       if (delBtn) {
-        delBtn.addEventListener("click", async (e) => {
+        delBtn.onclick = async (e) => {
           e.stopPropagation();
-          if (!canDeleteItem(currentUser, item)) return showToast("Not authorized.");
-          if (confirm("Are you sure you want to delete this item?")) {
-            try {
+          if (confirm("Delete this item?")) {
+            if (item.id.startsWith("demo")) {
+              demoItems = demoItems.filter(d => d.id !== item.id);
+              applyFiltersAndRender();
+            } else {
               await db.collection("items").doc(item.id).delete();
-              showToast("Item deleted successfully!");
-            } catch (err) {
-              showToast(err.message);
             }
+            showToast("Item deleted");
           }
-        });
+        };
       }
-
       itemsGrid.appendChild(card);
     });
   }
 
-  // ===== Real-time Firestore listener =====
-  db.collection("items").orderBy("date", "desc").onSnapshot(snapshot => {
-    itemsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // ===== Firestore listener =====
+  db.collection("items").onSnapshot(snapshot => {
+    firestoreItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     applyFiltersAndRender();
   });
 
-  // ===== Search and filter =====
+  // ===== Search & filter =====
   function applyFiltersAndRender() {
-    const term = (searchInput.value || "").toLowerCase();
-    const type = filterType.value || "";
-    const status = filterStatus.value || "";
-    const filtered = itemsCache.filter(item => {
-      const matchesTerm =
-        (item.title || "").toLowerCase().includes(term) ||
-        (item.description || "").toLowerCase().includes(term);
+    const term = searchInput.value.toLowerCase();
+    const type = filterType.value;
+    const status = filterStatus.value;
+    const allItems = [...demoItems, ...firestoreItems];
+    const filtered = allItems.filter(item => {
+      const matchesTerm = item.title.toLowerCase().includes(term) || item.description.toLowerCase().includes(term);
       const matchesType = !type || item.type === type;
       const matchesStatus = !status || item.status === status;
       return matchesTerm && matchesType && matchesStatus;
     });
     renderItems(filtered);
   }
-  searchInput.addEventListener("input", applyFiltersAndRender);
-  filterType.addEventListener("change", applyFiltersAndRender);
-  filterStatus.addEventListener("change", applyFiltersAndRender);
+  searchInput.oninput = applyFiltersAndRender;
+  filterType.onchange = applyFiltersAndRender;
+  filterStatus.onchange = applyFiltersAndRender;
 
-  // ===== Form submission with image upload and ownership =====
-  document.getElementById("date").valueAsDate = new Date();
-  itemForm.addEventListener("submit", async (e) => {
+  // ===== Form submission =====
+  itemForm.onsubmit = async (e) => {
     e.preventDefault();
     requireAuth(async () => {
-      try {
-        const user = firebase.auth().currentUser;
-        const file = document.getElementById("image").files[0];
-        let imageUrl = "";
-        if (file) {
-          const path = `items/${Date.now()}_${file.name}`;
-          const storageRef = storage.ref(path);
-          await storageRef.put(file);
-          imageUrl = await storageRef.getDownloadURL();
-        }
-        const newItem = {
-          type: document.getElementById("itemType").value,
-          status: document.getElementById("status").value,
-          title: document.getElementById("itemTitle").value,
-          description: document.getElementById("description").value,
-          location: document.getElementById("location").value,
-          date: document.getElementById("date").value,
-          contact: document.getElementById("contact").value,
-          image: imageUrl,
-          createdBy: user.email,      // ownership
-          createdAt: new Date().toISOString()
-        };
-        await db.collection("items").add(newItem);
-        showToast("Item reported successfully!");
-        itemForm.reset();
-        document.getElementById("date").valueAsDate = new Date();
-      } catch (err) {
-        showToast(err.message);
+      const user = firebase.auth().currentUser;
+      const file = document.getElementById("image").files[0];
+      let imageUrl = "";
+      if (file) {
+        const ref = storage.ref(`items/${Date.now()}_${file.name}`);
+        await ref.put(file);
+        imageUrl = await ref.getDownloadURL();
       }
+      const newItem = {
+        type: document.getElementById("itemType").value,
+        status: document.getElementById("status").value,
+        title: document.getElementById("itemTitle").value,
+        description: document.getElementById("description").value,
+        location: document.getElementById("location").value,
+        date: document.getElementById("date").value,
+        contact: document.getElementById("contact").value,
+        image: imageUrl,
+        createdBy: user.email
+      };
+      await db.collection("items").add(newItem);
+      showToast("Item reported successfully!");
+      itemForm.reset();
     });
-  });
-
-  // ===== Mobile menu toggle =====
-  document.querySelector(".mobile-menu-btn").addEventListener("click", () => {
-    const nav = document.querySelector("nav");
-    nav.style.display = nav.style.display === "flex" ? "none" : "flex";
-  });
-
-  // ===== Smooth anchor scrolling =====
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-      const targetEl = document.querySelector(targetId);
-      if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
-    });
-  });
+  };
 </script>
+
 
 </html>
