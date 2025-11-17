@@ -1,0 +1,45 @@
+type User @table {
+  firebaseUid: String!
+  email: String!
+  displayName: String!
+  photoUrl: String
+  department: String
+}
+
+type ItemType @table {
+  name: String!
+  description: String
+}
+
+type LostItem @table {
+  title: String!
+  description: String!
+  lastSeenLocation: String!
+  reportedAt: Timestamp!
+  status: String!
+  reporter: User
+  itemType: ItemType
+  imageUrl: String
+  contactPreference: String
+}
+
+type FoundItem @table {
+  title: String!
+  description: String!
+  foundLocation: String!
+  reportedAt: Timestamp!
+  status: String!
+  finder: User
+  itemType: ItemType
+  imageUrl: String
+  contactPreference: String
+}
+
+type Message @table {
+  sender: User!
+  receiver: User!
+  content: String!
+  sentAt: Timestamp!
+  lostItem: LostItem
+  foundItem: FoundItem
+}
