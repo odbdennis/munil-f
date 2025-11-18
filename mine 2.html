@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muni L&F Hub</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- Firebase -->
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js"></script>
+
+    <style>
+
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .logo h1 {
+            font-size: 2.0rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        nav a:hover, nav a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content Styles */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.6), rgba(44, 62, 80, 0.6)), 
+                        url('view.jpg');
+            background-size: cover;
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .cta-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background-color: var(--secondary);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background-color: rgb(205, 231, 248);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* Items Grid Styles */
+        .items-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .item-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-image {
+            height: 200px;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-details {
+            padding: 1.5rem;
+        }
+
+        .item-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .item-type {
+            background-color: var(--light);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .item-description {
+            margin-bottom: 1rem;
+            color: #555;
+        }
+
+        .item-contact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .contact-info {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        .claim-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .claim-btn:hover {
+            background-color: #27ae60;
+        }
+
+        /* Filter and Search Styles */
+        .filter-container {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+
+        .copyright {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+
+        /* Animation for new items */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+             <div class="logo">
+      <img src="logo.png" alt="L&F Hub" width="60">
+                <h1 >Muni L&F Hub</h1>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Home</a></li>
+                    <li><a href="#browse">Browse Items</a></li>
+                    <li><a href="#report">Report Item</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#login">Login</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions" style="display:flex;align-items:center;gap:1rem;">
+                <span id="userDisplay" style="color:white;font-weight:600;"></span>
+                <a href="#" id="logoutLink" style="color:white;display:none;text-decoration:underline;">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+
+        <!-- Hero Section -->
+        <section class="hero">
+           <div class="relative overflow-hidden w-full h-12 flex items-center justify-center bg-white">
+            <h2 id="changingText" class="text-2xl font-bold text-blue-700 whitespace-nowrap"></h2>
+            </div>
+            <p>Our Lost & Found Portal helps reunite students with their belongings quickly and easily
+    <br> Report lost items or browse found items to claim what's yours.</p>
+
+            <a href="#report" class="cta-button">Report a Lost Item</a>
+        </section>
+
+        <!-- Browse Items Section -->
+        <section id="browse">
+            <h2 class="section-title">Browse Lost & Found Items</h2>
+            
+            <!-- Filter and Search -->
+            <div class="filter-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search items...">
+                </div>
+                <div class="filter-options">
+                    <select id="filterType" class="form-control">
+                        <option value="">All Types</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Books & Notes">Books & Notes</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Keys">Keys</option>
+                        <option value="ID Cards">ID Cards</option>
+                        <option value="Water Bottles">Water Bottles</option>
+                        <option value="Bags & Backpacks">Bags & Backpacks</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <select id="filterStatus" class="form-control">
+                        <option value="">All Status</option>
+                        <option value="Lost">Lost</option>
+                        <option value="Found">Found</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Items Grid -->
+            <div class="items-container" id="itemsGrid">
+                <!-- Items will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Report Item Form -->
+        <section id="report">
+            <h2 class="section-title">Report Lost or Found Item</h2>
+            <div class="form-container">
+                <form id="itemForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemType">Item Type</label>
+                            <select id="itemType" class="form-control" required>
+                                <option value="">Select item type</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Books & Notes">Books & Notes</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Keys">Keys</option>
+                                <option value="ID Cards">ID Cards</option>
+                                <option value="Water Bottles">Water Bottles</option>
+                                <option value="Bags & Backpacks">Bags & Backpacks</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" class="form-control" required>
+                                <option value="">Select status</option>
+                                <option value="Lost">Lost</option>
+                                <option value="Found">Found</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemTitle">Item Title</label>
+                        <input type="text" id="itemTitle" class="form-control" placeholder="e.g., Black Water Bottle with Muni Logo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" class="form-control" placeholder="Provide detailed description of the item..." required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" class="form-control" placeholder="Where was it lost/found?" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact">Contact Information</label>
+                        <input type="text" id="contact" class="form-control" placeholder="Email or phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Upload Image (Optional)</label>
+                        <input type="file" id="image" class="form-control" accept="image/*">
+                    </div>
+                    <button type="submit" class="cta-button">Submit Report</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about">
+            <h2 class="section-title">About the Portal</h2>
+            <div class="form-container">
+                <p>The Muni University Lost & Found Portal is a digital platform designed to help students, faculty, and staff reunite with their lost belongings. Our mission is to reduce the stress of losing personal items and promote a helpful campus community.
+                If you have any questions or suggestions, please contact us on info@muniuniversitylost&found.com</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="logo">
+                <h2>Muni L&F Hub</h2>
+            </div>
+            <div class="footer-links">
+                <a href="#">Home</a>
+                <a href="#browse">Browse Items</a>
+                <a href="#report">Report Item</a>
+                <a href="#about">About</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+            <p class="copyright">&copy; 2025 Muni University. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Modal for Item Details -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Item Details</h2>
+            <div id="modalContent">
+                <!-- Modal content will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close-auth" style="position:absolute;top:1rem;right:1.5rem;cursor:pointer;">&times;</span>
+            <h2 id="authTitle">Log In / Sign Up</h2>
+            <div id="authContent">
+                <div class="form-group">
+                    <label for="authEmail">Email</label>
+                    <input type="email" id="authEmail" class="form-control" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" class="form-control" placeholder="password">
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+                    <button id="loginBtn" class="cta-button">Log In</button>
+                    <button id="signupBtn" class="cta-button" style="background-color:var(--secondary);">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Item reported successfully!</span>
+    </div>
+</body>
+
+<script>
+  // ===== Hero text rotation =====
+  const heroMessages = ["Did you find something on campus?", "Or lost something on campus?"];
+  let heroIndex = 0;
+  const heroTextEl = document.getElementById("changingText");
+  heroTextEl.textContent = heroMessages[heroIndex];
+  setInterval(() => {
+    heroIndex = (heroIndex + 1) % heroMessages.length;
+    heroTextEl.textContent = heroMessages[heroIndex];
+  }, 5000);
+
+  // ===== Firebase setup =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyCWv1BfWQYMYmkLk3ydEpgwxhKo9pulO7Q",
+    authDomain: "muni-lf-hub.firebaseapp.com",
+    projectId: "muni-lf-hub",
+    storageBucket: "muni-lf-hub.appspot.com",
+    messagingSenderId: "400377697268",
+    appId: "1:400377697268:web:52726a678e8c19ee97dfa1"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  // ===== Demo items =====
+  let demoItems = [
+    { id: "demo1", type: "Water Bottles", status: "Found", title: "Blue Hydro Flask", description: "Found near the library entrance.", location: "Main Library", date: "2023-10-15", contact: "library@muni.edu", image: "water bottle.webp" },
+    { id: "demo2", type: "Books & Notes", status: "Lost", title: "Calculus Textbook", description: "Lost my calculus textbook near math building.", location: "Math Building", date: "2023-10-14", contact: "john.doe@student.muni.edu", image: "calculus.webp" },
+    { id: "demo3", type: "Electronics", status: "Found", title: "Wireless Earbuds", description: "Found black earbuds in cafeteria.", location: "Cafeteria", date: "2023-10-13", contact: "cafeteria@muni.edu", image: "earbuds.jpg" }
+  ];
+
+  // ===== DOM refs =====
+  const itemsGrid = document.getElementById("itemsGrid");
+  const itemForm = document.getElementById("itemForm");
+  const searchInput = document.getElementById("searchInput");
+  const filterType = document.getElementById("filterType");
+  const filterStatus = document.getElementById("filterStatus");
+  const authModal = document.getElementById("authModal");
+  const loginBtn = document.getElementById("loginBtn");
+  const signupBtn = document.getElementById("signupBtn");
+  const authEmail = document.getElementById("authEmail");
+  const authPassword = document.getElementById("authPassword");
+  const userDisplay = document.getElementById("userDisplay");
+  const logoutLink = document.getElementById("logoutLink");
+  const toast = document.getElementById("toast");
+  const toastMessage = document.getElementById("toastMessage");
+
+  // ===== Config: Admin email =====
+  const ADMIN_EMAIL = "admin@munilf.com";
+
+  // ===== Helpers =====
+  function showToast(msg) {
+    toastMessage.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+  }
+  function isAdmin(user) { return user && user.email === ADMIN_EMAIL; }
+  function canDeleteItem(user, item) { return user && (isAdmin(user) || item.createdBy === user.email); }
+
+  // ===== Auth =====
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      userDisplay.textContent = user.email;
+      logoutLink.style.display = "inline";
+    } else {
+      userDisplay.textContent = "";
+      logoutLink.style.display = "none";
+    }
+    applyFiltersAndRender();
+  });
+
+  signupBtn.onclick = () => {
+    firebase.auth().createUserWithEmailAndPassword(authEmail.value, authPassword.value)
+      .then(() => { showToast("Registered"); authModal.style.display = "none"; })
+      .catch(e => showToast(e.message));
+  };
+  loginBtn.onclick = () => {
+    firebase.auth().signInWithEmailAndPassword(authEmail.value, authPassword.value)
+      .then(() => { showToast("Logged in"); authModal.style.display = "none"; })
+      .catch(e => showToast(e.message));
+  };
+  logoutLink.onclick = (e) => { e.preventDefault(); firebase.auth().signOut(); };
+
+  function requireAuth(cb) {
+    const u = firebase.auth().currentUser;
+    if (u) cb(); else authModal.style.display = "flex";
+  }
+
+  // ===== Items rendering =====
+  let firestoreItems = [];
+  function renderItems(items) {
+    itemsGrid.innerHTML = "";
+    const user = firebase.auth().currentUser;
+    if (!items.length) {
+      itemsGrid.innerHTML = "<p>No items found.</p>";
+      return;
+    }
+    items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "item-card fade-in";
+      card.innerHTML = `
+        <div class="item-image"><img src="${item.image || 'view.jpg'}" alt="${item.title}"></div>
+        <div class="item-details">
+          <h3>${item.title}</h3>
+          <div class="item-meta"><span>${item.type}</span><span>${item.status}</span></div>
+          <p>${item.description}</p>
+          <div class="item-contact">
+            <span>${item.contact}</span>
+            <div>
+              <button class="claim-btn">Claim</button>
+              ${canDeleteItem(user, item) ? `<button class="delete-btn">Delete</button>` : ""}
+            </div>
+          </div>
+        </div>`;
+      // Claim
+      card.querySelector(".claim-btn").onclick = (e) => {
+        e.stopPropagation();
+        requireAuth(() => showToast(`Contact: ${item.contact}`));
+      };
+      // Delete
+      const delBtn = card.querySelector(".delete-btn");
+      if (delBtn) {
+        delBtn.onclick = async (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this item?")) {
+            if (item.id.startsWith("demo")) {
+              demoItems = demoItems.filter(d => d.id !== item.id);
+              applyFiltersAndRender();
+            } else {
+              await db.collection("items").doc(item.id).delete();
+            }
+            showToast("Item deleted");
+          }
+        };
+      }
+      itemsGrid.appendChild(card);
+    });
+  }
+
+  // ===== Firestore listener =====
+  db.collection("items").onSnapshot(snapshot => {
+    firestoreItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    applyFiltersAndRender();
+  });
+
+  // ===== Search & filter =====
+  function applyFiltersAndRender() {
+    const term = searchInput.value.toLowerCase();
+    const type = filterType.value;
+    const status = filterStatus.value;
+    const allItems = [...demoItems, ...firestoreItems];
+    const filtered = allItems.filter(item => {
+      const matchesTerm = item.title.toLowerCase().includes(term) || item.description.toLowerCase().includes(term);
+      const matchesType = !type || item.type === type;
+      const matchesStatus = !status || item.status === status;
+      return matchesTerm && matchesType && matchesStatus;
+    });
+    renderItems(filtered);
+  }
+  searchInput.oninput = applyFiltersAndRender;
+  filterType.onchange = applyFiltersAndRender;
+  filterStatus.onchange = applyFiltersAndRender;
+
+  // ===== Form submission =====
+  itemForm.onsubmit = async (e) => {
+    e.preventDefault();
+    requireAuth(async () => {
+      const user = firebase.auth().currentUser;
+      const file = document.getElementById("image").files[0];
+      let imageUrl = "";
+      if (file) {
+        const ref = storage.ref(`items/${Date.now()}_${file.name}`);
+        await ref.put(file);
+        imageUrl = await ref.getDownloadURL();
+      }
+      const newItem = {
+        type: document.getElementById("itemType").value,
+        status: document.getElementById("status").value,
+        title: document.getElementById("itemTitle").value,
+        description: document.getElementById("description").value,
+        location: document.getElementById("location").value,
+        date: document.getElementById("date").value,
+        contact: document.getElementById("contact").value,
+        image: imageUrl,
+        createdBy: user.email
+      };
+      await db.collection("items").add(newItem);
+      showToast("Item reported successfully!");
+      itemForm.reset();
+    });
+  };
+</script>
+
+
+</html>

@@ -1,885 +1,576 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Muni L&F Hub</title>
-    <link rel="icon" href="favicon.png" type="image/png">
-    <!-- Firebase -->
-            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js"></script>
-
-    <style>
-
-        /* CSS Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        /* Header Styles */
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo i {
-            font-size: 1.8rem;
-        }
-
-        .logo h1 {
-            font-size: 2.0rem;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: var(--transition);
-        }
-
-        nav a:hover, nav a.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* Main Content Styles */
-        main {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .hero {
-            background: linear-gradient(rgba(44, 62, 80, 0.6), rgba(44, 62, 80, 0.6)), 
-                        url('view.jpg');
-            background-size: cover;
-            color: white;
-            padding: 3rem 2rem;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-        }
-
-        .hero h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 700px;
-            margin: 0 auto 2rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background-color: var(--accent);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .cta-button:hover {
-            background-color: #c0392b;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .section-title {
-            text-align: center;
-            margin: 2rem 0;
-            color: var(--primary);
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background-color: var(--secondary);
-            margin: 10px auto;
-            border-radius: 2px;
-        }
-
-        /* Form Styles */
-        .form-container {
-            background-color: rgb(205, 231, 248);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        /* Items Grid Styles */
-        .items-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .item-card {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            
-        }
-
-        .item-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .item-image {
-            height: 200px;
-            background-color: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .item-details {
-            padding: 1.5rem;
-        }
-
-        .item-title {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        .item-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: #777;
-        }
-
-        .item-type {
-            background-color: var(--light);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .item-description {
-            margin-bottom: 1rem;
-            color: #555;
-        }
-
-        .item-contact {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
-        }
-
-        .contact-info {
-            font-size: 0.9rem;
-            color: var(--secondary);
-        }
-
-        .claim-btn {
-            background-color: var(--success);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .claim-btn:hover {
-            background-color: #27ae60;
-        }
-
-        /* Filter and Search Styles */
-        .filter-container {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .filter-options {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        /* Footer Styles */
-        footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 1.5rem 0;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .footer-links a:hover {
-            color: var(--secondary);
-        }
-
-        .copyright {
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: #bbb;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #777;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 5px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: var(--transition);
-            z-index: 1001;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            nav ul {
-                flex-direction: column;
-                gap: 0.5rem;
-                text-align: center;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-
-            .filter-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-box {
-                min-width: auto;
-            }
-
-            .hero h2 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-        }
-
-        /* Animation for new items */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Meta -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Muni L&F Hub</title>
+  <link rel="icon" href="favicon.png" type="image/png"/>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js"></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css"/>
+
+  <!-- Styles: css-style layout, Muni blue palette -->
+  <style>
+    :root{
+      --primary:#2c3e50;
+      --secondary:#3498db;
+      --accent:#e74c3c;
+      --success:#2ecc71;
+      --warning:#f39c12;
+      --light:#ecf0f1;
+      --dark:#2c3e50;
+      --text:#2c3e50;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;background:#f5f7fa;color:var(--text)}
+    a{text-decoration:none;color:inherit}
+    
+      .searchbar input {
+      flex: none; /* prevent stretching */
+      width: 220px; /* fixed smaller width */
+      }
+
+
+    /* Top nav */
+    header{background:#fff;border-bottom:1px solid #eaecef;position:sticky;top:0;z-index:100}
+    .topbar{display:flex;align-items:center;gap:1rem;justify-content:space-between;max-width:1200px;margin:0 auto;padding:.75rem 1rem}
+    .brand{display:flex;align-items:center;gap:.5rem}
+    .brand img{width:40px;height:40px}
+    .brand h1{font-size:1.25rem;color:var(--secondary);margin:0;font-weight:700}
+    .searchbar{flex:1;display:flex;gap:.5rem}
+    .searchbar input{flex:1;padding:.6rem .8rem;border:1px solid #dfe3e6;border-radius:6px}
+    .searchbar button{background:var(--secondary);color:#fff;border:none;padding:.6rem .9rem;border-radius:6px;cursor:pointer}
+    .userbox{display:flex;align-items:center;gap:.75rem}
+    .userbox .user-email{color:var(--secondary);font-weight:600}
+    .userbox .btn{color:#fff;background:var(--accent);padding:.5rem .8rem;border-radius:6px}
+
+    /* Category bar (Jumia-like) */
+    .catbar{background:linear-gradient(90deg,#2c3e50,#3498db);color:#fff}
+    .catwrap{max-width:1200px;margin:0 auto;display:flex;gap:1rem;padding:.6rem 1rem;flex-wrap:wrap}
+    .cat{padding:.35rem .7rem;border:1px solid rgba(255,255,255,.25);border-radius:20px;cursor:pointer}
+    .cat.active{background:#fff;color:var(--secondary);border-color:#fff}
+
+    /* Hero banner */
+    .hero{max-width:1200px;margin:1rem auto;background:linear-gradient(rgba(44,62,80,.6),rgba(44,62,80,.6)),url('view.jpg') center/cover;border-radius:12px;color:#fff;padding:2rem 1rem;text-align:center}
+    .hero h2{margin:0 0 .75rem}
+    .hero .cta{display:inline-block;background:var(--accent);color:#fff;padding:.6rem 1rem;border-radius:24px;margin-top:.75rem}
+
+    /* Page layout */
+    main{max-width:1200px;margin:0 auto;padding:1rem}
+    .grid-layout{display:grid;grid-template-columns:260px 1fr;gap:1rem}
+
+    /* Left filters (Jumia-style sidebar) */
+    .filters{background:#fff;border:1px solid #eaecef;border-radius:10px;padding:1rem}
+    .filters h3{margin:.25rem 0 .75rem;color:var(--primary)}
+    .filters .group{margin-bottom:1rem}
+    .filters select,.filters input{width:100%;padding:.5rem .6rem;border:1px solid #dfe3e6;border-radius:6px}
+    .filters .sort{margin-top:.75rem}
+
+    /* Results header */
+    .results-head{display:flex;justify-content:space-between;align-items:center;margin:.5rem 0;color:#555}
+
+    /* Item cards grid */
+    .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+    .card{background:#fff;border:1px solid #eaecef;border-radius:10px;overflow:hidden;transition:box-shadow .2s,transform .15s}
+    .card:hover{box-shadow:0 10px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+    .thumb{height:170px;background:#f0f3f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .info{padding:.8rem}
+    .title{font-weight:600;color:var(--primary);margin:0 0 .25rem}
+    .meta{display:flex;gap:.4rem;flex-wrap:wrap;font-size:.85rem;color:#666;margin:.35rem 0}
+    .badge{padding:.15rem .45rem;border-radius:12px;background:#ecf0f1}
+    .badge.status{color:#fff;background:var(--success)}
+    .badge.status.lost{background:var(--warning)}
+    .desc{color:#555;font-size:.92rem;margin:.5rem 0}
+    .actions{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+    .contact{color:var(--secondary);font-weight:600;font-size:.9rem}
+    .btn{border:none;border-radius:6px;padding:.45rem .7rem;cursor:pointer}
+    .btn-claim{background:var(--success);color:#fff}
+    .btn-delete{background:var(--accent);color:#fff}
+
+    /* Modal (auth + details) */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+    .modal .box{background:#fff;border-radius:10px;padding:1rem;max-width:420px;width:92%}
+    .modal h3{margin:.25rem 0 1rem}
+    .modal .close{position:absolute;top:10px;right:12px;color:#777;cursor:pointer}
+
+    /* Toast */
+    .toast{position:fixed;bottom:20px;right:20px;background:var(--success);color:#fff;padding:.7rem 1rem;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.25s;z-index:300}
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    /* Responsive */
+    @media (max-width:960px){.grid-layout{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-container">
-             <div class="logo">
-      <img src="logo.png" alt="L&F Hub" width="60">
-                <h1 >Muni L&F Hub</h1>
-            </div>
-            <button class="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav>
-                <ul>
-                    <li><a href="#" class="active">Home</a></li>
-                    <li><a href="#browse">Browse Items</a></li>
-                    <li><a href="#report">Report Item</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#login">Login</a></li>
-                </ul>
-            </nav>
-            <div class="user-actions" style="display:flex;align-items:center;gap:1rem;">
-                <span id="userDisplay" style="color:white;font-weight:600;"></span>
-                <a href="#" id="logoutLink" style="color:white;display:none;text-decoration:underline;">Logout</a>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main>
+  <!-- Header -->
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <img src="logo.png" alt="Muni L&F"/>
+        <h1>Muni L&F Hub</h1>
+      <div class="searchbar">
+     <!-- Reduced width search box -->
+      <input id="searchInput" type="text" placeholder="Search your lost and found items here" style="width:720px"/>
+      <button id="searchBtn"><i class="fa fa-search"></i></button>
+      </div>
 
-        <!-- Hero Section -->
-        <section class="hero">
-           <div class="relative overflow-hidden w-full h-12 flex items-center justify-center bg-white">
-            <h2 id="changingText" class="text-2xl font-bold text-blue-700 whitespace-nowrap"></h2>
-            </div>
-            <p>Our Lost & Found Portal helps reunite students with their belongings quickly and easily
-    <br> Report lost items or browse found items to claim what's yours.</p>
+<div class="userbox">
+  
+  <!-- New Help button -->
+  <a href="#about" class="btn" style="background:var(--warning);color:#fff;">Help</a>
+</div>
 
-            <a href="#report" class="cta-button">Report a Lost Item</a>
-        </section>
+      <div class="userbox">
+        <span id="userEmail" class="user-email"></span>
+        <a href="#" id="logoutLink" class="btn" style="display:none;">Logout</a>
+        <button id="openAuth" class="btn" style="background:var(--secondary);">Login / Sign up</button>
+      </div>
+    </div>
+  </header>
 
-        <!-- Browse Items Section -->
-        <section id="browse">
-            <h2 class="section-title">Browse Lost & Found Items</h2>
-            
-            <!-- Filter and Search -->
-            <div class="filter-container">
-                <div class="search-box">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search items...">
-                </div>
-                <div class="filter-options">
-                    <select id="filterType" class="form-control">
-                        <option value="">All Types</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Books & Notes">Books & Notes</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Accessories">Accessories</option>
-                        <option value="Keys">Keys</option>
-                        <option value="ID Cards">ID Cards</option>
-                        <option value="Water Bottles">Water Bottles</option>
-                        <option value="Bags & Backpacks">Bags & Backpacks</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <select id="filterStatus" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="Lost">Lost</option>
-                        <option value="Found">Found</option>
-                    </select>
-                </div>
-            </div>
+  <!-- Categories bar -->
+  <div class="catbar">
+    <div class="catwrap">
+      <div class="cat active" data-type="">All</div>
+      <div class="cat" data-type="Electronics">Electronics</div>
+      <div class="cat" data-type="Books & Notes">Books & Notes</div>
+      <div class="cat" data-type="Clothing">Clothing</div>
+      <div class="cat" data-type="Accessories">Accessories</div>
+      <div class="cat" data-type="Keys">Keys</div>
+      <div class="cat" data-type="ID Cards">ID Cards</div>
+      <div class="cat" data-type="Water Bottles">Water Bottles</div>
+      <div class="cat" data-type="Bags & Backpacks">Bags & Backpacks</div>
+      <div class="cat" data-type="Other">Other</div>
+    </div>
+  </div>
 
-            <!-- Items Grid -->
-            <div class="items-container" id="itemsGrid">
-                <!-- Items will be dynamically added here -->
-            </div>
-        </section>
-
-        <!-- Report Item Form -->
-        <section id="report">
-            <h2 class="section-title">Report Lost or Found Item</h2>
-            <div class="form-container">
-                <form id="itemForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="itemType">Item Type</label>
-                            <select id="itemType" class="form-control" required>
-                                <option value="">Select item type</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Books & Notes">Books & Notes</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Accessories">Accessories</option>
-                                <option value="Keys">Keys</option>
-                                <option value="ID Cards">ID Cards</option>
-                                <option value="Water Bottles">Water Bottles</option>
-                                <option value="Bags & Backpacks">Bags & Backpacks</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" class="form-control" required>
-                                <option value="">Select status</option>
-                                <option value="Lost">Lost</option>
-                                <option value="Found">Found</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemTitle">Item Title</label>
-                        <input type="text" id="itemTitle" class="form-control" placeholder="e.g., Black Water Bottle with Muni Logo" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" class="form-control" placeholder="Provide detailed description of the item..." required></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="location">Location</label>
-                            <input type="text" id="location" class="form-control" placeholder="Where was it lost/found?" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="date">Date</label>
-                            <input type="date" id="date" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="contact">Contact Information</label>
-                        <input type="text" id="contact" class="form-control" placeholder="Email or phone number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="image">Upload Image (Optional)</label>
-                        <input type="file" id="image" class="form-control" accept="image/*">
-                    </div>
-                    <button type="submit" class="cta-button">Submit Report</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- About Section -->
-        <section id="about">
-            <h2 class="section-title">About the Portal</h2>
-            <div class="form-container">
-                <p>The Muni University Lost & Found Portal is a digital platform designed to help students, faculty, and staff reunite with their lost belongings. Our mission is to reduce the stress of losing personal items and promote a helpful campus community.
-                If you have any questions or suggestions, please contact us on info@muniuniversitylost&found.com</p>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="logo">
-                <h2>Muni L&F Hub</h2>
-            </div>
-            <div class="footer-links">
-                <a href="#">Home</a>
-                <a href="#browse">Browse Items</a>
-                <a href="#report">Report Item</a>
-                <a href="#about">About</a>
-                <a href="#">Contact Us</a>
-                <a href="#">Privacy Policy</a>
-            </div>
-            <p class="copyright">&copy; 2025 Muni University. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Modal for Item Details -->
+  <!-- Hero -->
+  <section class="hero">
+    <h2 id="changingText">Did you find something on campus?</h2>
+    <p>Browse like a marketplace, but for kindness. Report or claim items swiftly.</p>
+    <a href="#report" class="cta">Report an item</a>
+  </section>
+  <!--item popup when clicked -->
     <div class="modal" id="itemModal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2 id="modalTitle">Item Details</h2>
-            <div id="modalContent">
-                <!-- Modal content will be dynamically added here -->
-            </div>
-        </div>
-    </div>
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <h2 id="modalTitle">Item Details</h2>
+    <div id="modalContent"></div>
+  </div>
+</div>
 
-    <!-- Auth Modal -->
-    <div class="modal" id="authModal">
-        <div class="modal-content">
-            <span class="close-auth" style="position:absolute;top:1rem;right:1.5rem;cursor:pointer;">&times;</span>
-            <h2 id="authTitle">Log In / Sign Up</h2>
-            <div id="authContent">
-                <div class="form-group">
-                    <label for="authEmail">Email</label>
-                    <input type="email" id="authEmail" class="form-control" placeholder="you@example.com">
-                </div>
-                <div class="form-group">
-                    <label for="authPassword">Password</label>
-                    <input type="password" id="authPassword" class="form-control" placeholder="password">
-                </div>
-                <div style="display:flex;gap:0.5rem;margin-top:1rem;">
-                    <button id="loginBtn" class="cta-button">Log In</button>
-                    <button id="signupBtn" class="cta-button" style="background-color:var(--secondary);">Sign Up</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Main -->
+  <main>
+  <div class="grid-layout">
+    <!-- Filters sidebar -->
+    <aside class="filters">
+      <h3>Filters</h3>
+      <div class="group">
+        <label>Type</label>
+        <select id="filterType">
+          <option value="">All Types</option>
+          <option>Electronics</option>
+          <option>Books & Notes</option>
+          <option>Clothing</option>
+          <option>Accessories</option>
+          <option>Keys</option>
+          <option>ID Cards</option>
+          <option>Water Bottles</option>
+          <option>Bags & Backpacks</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="group">
+        <label>Status</label>
+        <select id="filterStatus">
+          <option value="">All Status</option>
+          <option>Lost</option>
+          <option>Found</option>
+        </select>
+      </div>
+      <div class="group">
+        <label>Sort by</label>
+        <select id="sortBy">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="typeAsc">Type (A→Z)</option>
+          <option value="typeDesc">Type (Z→A)</option>
+          <option value="statusLost">Lost first</option>
+          <option value="statusFound">Found first</option>
+        </select>
+      </div>
+      <hr style="margin:1rem 0;opacity:.3"/>
+      <h3>Report item</h3>
+      <form id="itemForm">
+        <input id="itemTitle" placeholder="Title" required/>
+        <textarea id="description" placeholder="Description" required></textarea>
+        <input id="location" placeholder="Location" required/>
+        <input type="date" id="date" required/>
+        <input id="contact" placeholder="Contact (email/phone)" required/>
+        <select id="itemType" required>
+          <option value="">Item type</option>
+          <option>Electronics</option>
+          <option>Books & Notes</option>
+          <option>Clothing</option>
+          <option>Accessories</option>
+          <option>Keys</option>
+          <option>ID Cards</option>
+          <option>Water Bottles</option>
+          <option>Bags & Backpacks</option>
+          <option>Other</option>
+        </select>
+        <select id="status" required>
+          <option value="">Status</option>
+          <option>Lost</option>
+          <option>Found</option>
+        </select>
+        <input type="file" id="image" accept="image/*"/>
+        <button type="submit" class="btn" style="background:var(--secondary);color:#fff;width:100%;">Submit</button>
+      </form>
+    </aside>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Item reported successfully!</span>
+    <!-- Right column -->
+    <section>
+      <!-- Sample showcase -->
+      <div id="homepage-samples" style="margin-bottom:2rem;">
+        <h2 style="color:var(--primary);margin-bottom:1rem;">Latest Lost & Found</h2>
+        <div class="items">
+          <div class="card">
+            <div class="thumb"><img src="water bottle.webp" alt="Blue Hydro Flask"></div>
+            <div class="info">
+              <h4 class="title">Blue Hydro Flask</h4>
+              <div class="meta"><span class="badge">Water Bottle</span><span class="badge status">Found</span></div>
+              <p class="desc">Found near the library entrance with stickers.</p>
+              <div class="actions"><span class="contact">library@muni.edu</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="thumb"><img src="calculus.webp" alt="Calculus Textbook"></div>
+            <div class="info">
+              <h4 class="title">Calculus Textbook</h4>
+              <div class="meta"><span class="badge">Books & Notes</span><span class="badge status lost">Lost</span></div>
+              <p class="desc">Lost between math building and student center.</p>
+              <div class="actions"><span class="contact">john.doe@student.muni.edu</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="thumb"><img src="earbuds.jpg" alt="Wireless Earbuds"></div>
+            <div class="info">
+              <h4 class="title">Wireless Earbuds</h4>
+              <div class="meta"><span class="badge">Electronics</span><span class="badge status">Found</span></div>
+              <p class="desc">Black earbuds left on cafeteria table.</p>
+              <div class="actions"><span class="contact">cafeteria@muni.edu</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live items grid -->
+      <div class="results-head">
+        <div id="resultsMeta">0 items found</div>
+      </div>
+      <div id="itemsGrid" class="items"></div>
+    </section>
+  </div>
+</main>
+
+
+  <!-- Auth Modal -->
+  <div class="modal" id="authModal">
+    <div class="box" style="position:relative">
+      <span class="close" id="closeAuth"><i class="fa fa-times"></i></span>
+      <h3>Login / Sign up</h3>
+      <input id="authEmail" placeholder="Email" style="width:100%;padding:.5rem;border:1px solid #dfe3e6;border-radius:6px;margin:.25rem 0"/>
+      <input id="authPassword" type="password" placeholder="Password" style="width:100%;padding:.5rem;border:1px solid #dfe3e6;border-radius:6px;margin:.25rem 0"/>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <button id="loginBtn" class="btn" style="background:var(--secondary);color:#fff;flex:1">Login</button>
+        <button id="signupBtn" class="btn" style="background:var(--accent);color:#fff;flex:1">Sign up</button>
+      </div>
     </div>
-</body>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><span id="toastMessage"></span></div>
+
+  <!-- footer -->
+  <footer style="background:var(--dark);color:#fff;padding:2rem;margin-top:2rem;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;">
+    <div>
+      <h3 style="margin:0;color:var(--secondary)">Muni L&F Hub</h3>
+      <p style="color:#bbb;font-size:.9rem;">&copy; 2025 Muni University. All rights reserved.</p>
+    </div>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+      <a href="#browse" style="color:#fff;">Browse Items</a>
+      <a href="#report" style="color:#fff;">Report Item</a>
+      <a href="#about" style="color:#fff;">About</a>
+      <a href="#" style="color:#fff;">Contact Us</a>
+      <a href="#" style="color:#fff;">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+
 
 <script>
-  // ===== Hero text rotation =====
-  const heroMessages = ["Did you find something on campus?", "Or lost something on campus?"];
-  let heroIndex = 0;
-  const heroTextEl = document.getElementById("changingText");
-  heroTextEl.textContent = heroMessages[heroIndex];
-  setInterval(() => {
-    heroIndex = (heroIndex + 1) % heroMessages.length;
-    heroTextEl.textContent = heroMessages[heroIndex];
-  }, 5000);
+  // Hero rotation
+  const messages=["Did you find something on campus?","Or lost something on campus?"];
+  let mIndex=0;
+  const changingText=document.getElementById("changingText");
+  setInterval(()=>{mIndex=(mIndex+1)%messages.length;changingText.textContent=messages[mIndex];},5000);
+  changingText.textContent=messages[mIndex];
 
-  // ===== Firebase setup =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyCWv1BfWQYMYmkLk3ydEpgwxhKo9pulO7Q",
-    authDomain: "muni-lf-hub.firebaseapp.com",
-    projectId: "muni-lf-hub",
-    storageBucket: "muni-lf-hub.appspot.com",
-    messagingSenderId: "400377697268",
-    appId: "1:400377697268:web:52726a678e8c19ee97dfa1"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const storage = firebase.storage();
+  // Firebase init
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-  // ===== Demo items =====
-  let demoItems = [
-    { id: "demo1", type: "Water Bottles", status: "Found", title: "Blue Hydro Flask", description: "Found near the library entrance.", location: "Main Library", date: "2023-10-15", contact: "library@muni.edu", image: "water bottle.webp" },
-    { id: "demo2", type: "Books & Notes", status: "Lost", title: "Calculus Textbook", description: "Lost my calculus textbook near math building.", location: "Math Building", date: "2023-10-14", contact: "john.doe@student.muni.edu", image: "calculus.webp" },
-    { id: "demo3", type: "Electronics", status: "Found", title: "Wireless Earbuds", description: "Found black earbuds in cafeteria.", location: "Cafeteria", date: "2023-10-13", contact: "cafeteria@muni.edu", image: "earbuds.jpg" }
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCWv1BfWQYMYmkLk3ydEpgwxhKo9pulO7Q",
+  authDomain: "muni-lf-hub.firebaseapp.com",
+  projectId: "muni-lf-hub",
+  storageBucket: "muni-lf-hub.firebasestorage.app",
+  messagingSenderId: "400377697268",
+  appId: "1:400377697268:web:52726a678e8c19ee97dfa1",
+  measurementId: "G-85THF0LN41"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const storage = firebase.storage();
+
+
+  // Admin email
+  const ADMIN_EMAIL="admin@munilf.com";
+
+  // Demo items (visible instantly)
+  let demoItems=[
+    {id:"demo1",type:"Water Bottles",status:"Found",title:"Blue Hydro Flask",description:"Found near library entrance.",location:"Main Library",date:"2025-10-15",contact:"library@muni.edu",image:"water bottle.webp",createdBy:"demo@muni.edu"},
+    {id:"demo2",type:"Books & Notes",status:"Lost",title:"Calculus Textbook",description:"Lost near math building.",location:"Math Building",date:"2025-10-14",contact:"john.doe@student.muni.edu",image:"calculus.webp",createdBy:"demo@muni.edu"},
+    {id:"demo3",type:"Electronics",status:"Found",title:"Wireless Earbuds",description:"Found black earbuds in cafeteria.",location:"Cafeteria",date:"2025-10-13",contact:"cafeteria@muni.edu",image:"earbuds.jpg",createdBy:"demo@muni.edu"}
   ];
 
-  // ===== DOM refs =====
-  const itemsGrid = document.getElementById("itemsGrid");
-  const itemForm = document.getElementById("itemForm");
-  const searchInput = document.getElementById("searchInput");
-  const filterType = document.getElementById("filterType");
-  const filterStatus = document.getElementById("filterStatus");
-  const authModal = document.getElementById("authModal");
-  const loginBtn = document.getElementById("loginBtn");
-  const signupBtn = document.getElementById("signupBtn");
-  const authEmail = document.getElementById("authEmail");
-  const authPassword = document.getElementById("authPassword");
-  const userDisplay = document.getElementById("userDisplay");
-  const logoutLink = document.getElementById("logoutLink");
-  const toast = document.getElementById("toast");
-  const toastMessage = document.getElementById("toastMessage");
+  // Refs
+  const itemsGrid=document.getElementById("itemsGrid");
+  const itemForm=document.getElementById("itemForm");
+  const searchInput=document.getElementById("searchInput");
+  const filterType=document.getElementById("filterType");
+  const filterStatus=document.getElementById("filterStatus");
+  const sortBy=document.getElementById("sortBy");
+  const resultsMeta=document.getElementById("resultsMeta");
+  const openAuth=document.getElementById("openAuth");
+  const authModal=document.getElementById("authModal");
+  const closeAuth=document.getElementById("closeAuth");
+  const authEmail=document.getElementById("authEmail");
+  const authPassword=document.getElementById("authPassword");
+  const loginBtn=document.getElementById("loginBtn");
+  const signupBtn=document.getElementById("signupBtn");
+  const userEmail=document.getElementById("userEmail");
+  const logoutLink=document.getElementById("logoutLink");
+  const toast=document.getElementById("toast");
+  const toastMessage=document.getElementById("toastMessage");
+  const searchBtn=document.getElementById("searchBtn");
 
-  // ===== Config: Admin email =====
-  const ADMIN_EMAIL = "admin@munilf.com";
+  // Helpers
+  function showToast(msg){toastMessage.textContent=msg;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2500);}
+  function isAdmin(u){return u && u.email===ADMIN_EMAIL;}
+  function canDelete(u,item){return u && (isAdmin(u) || item.createdBy===u.email);}
+  function requireAuth(cb){const u=firebase.auth().currentUser;if(u)cb();else authModal.style.display="flex";}
+  function fmtDate(d){try{const o={year:"numeric",month:"short",day:"numeric"};return new Date(d).toLocaleDateString(undefined,o);}catch{return d}}
 
-  // ===== Helpers =====
-  function showToast(msg) {
-    toastMessage.textContent = msg;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
-  }
-  function isAdmin(user) { return user && user.email === ADMIN_EMAIL; }
-  function canDeleteItem(user, item) { return user && (isAdmin(user) || item.createdBy === user.email); }
+  // Auth
+  openAuth.onclick=()=>authModal.style.display="flex";
+  closeAuth.onclick=()=>authModal.style.display="none";
+  window.addEventListener("click",(e)=>{if(e.target===authModal)authModal.style.display="none";});
 
-  // ===== Auth =====
-  firebase.auth().onAuthStateChanged(user => {
-    if (user) {
-      userDisplay.textContent = user.email;
-      logoutLink.style.display = "inline";
-    } else {
-      userDisplay.textContent = "";
-      logoutLink.style.display = "none";
-    }
+  firebase.auth().onAuthStateChanged(user=>{
+    if(user){userEmail.textContent=user.email;logoutLink.style.display="inline";}
+    else{userEmail.textContent="";logoutLink.style.display="none";}
     applyFiltersAndRender();
   });
 
-  signupBtn.onclick = () => {
-    firebase.auth().createUserWithEmailAndPassword(authEmail.value, authPassword.value)
-      .then(() => { showToast("Registered"); authModal.style.display = "none"; })
-      .catch(e => showToast(e.message));
+  signupBtn.onclick=()=>{
+    const email=authEmail.value.trim(), pw=authPassword.value;
+    if(!email||!pw) return showToast("Provide email and password.");
+    firebase.auth().createUserWithEmailAndPassword(email,pw)
+      .then(()=>{showToast("Registered");authModal.style.display="none";})
+      .catch(err=>showToast(err.message));
   };
-  loginBtn.onclick = () => {
-    firebase.auth().signInWithEmailAndPassword(authEmail.value, authPassword.value)
-      .then(() => { showToast("Logged in"); authModal.style.display = "none"; })
-      .catch(e => showToast(e.message));
+  loginBtn.onclick=()=>{
+    const email=authEmail.value.trim(), pw=authPassword.value;
+    if(!email||!pw) return showToast("Provide email and password.");
+    firebase.auth().signInWithEmailAndPassword(email,pw)
+      .then(()=>{showToast("Logged in");authModal.style.display="none";})
+      .catch(err=>showToast(err.message));
   };
-  logoutLink.onclick = (e) => { e.preventDefault(); firebase.auth().signOut(); };
+  logoutLink.onclick=(e)=>{e.preventDefault();firebase.auth().signOut().then(()=>showToast("Logged out"));};
 
-  function requireAuth(cb) {
-    const u = firebase.auth().currentUser;
-    if (u) cb(); else authModal.style.display = "flex";
+  // Firestore live items
+  let liveItems=[];
+  db.collection("items").onSnapshot(snap=>{
+    liveItems=snap.docs.map(d=>({id:d.id,...d.data()}));
+    applyFiltersAndRender();
+  });
+
+  // Category clicks
+  document.querySelectorAll(".cat").forEach(el=>{
+    el.onclick=()=>{
+      document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
+      el.classList.add("active");
+      filterType.value=el.getAttribute("data-type")||"";
+      applyFiltersAndRender();
+    };
+  });
+
+  // Search/filter/sort
+  searchInput.oninput=applyFiltersAndRender;
+  searchBtn.onclick=applyFiltersAndRender;
+  filterType.onchange=applyFiltersAndRender;
+  filterStatus.onchange=applyFiltersAndRender;
+  sortBy.onchange=applyFiltersAndRender;
+
+  // Render pipeline
+  function applyFiltersAndRender(){
+    const term=(searchInput.value||"").toLowerCase();
+    const type=filterType.value||"";
+    const status=filterStatus.value||"";
+    const sort=sortBy.value||"newest";
+
+    let all=[...demoItems,...liveItems];
+
+    // Filter
+    all=all.filter(i=>{
+      const t=(i.title||"").toLowerCase(), d=(i.description||"").toLowerCase(), l=(i.location||"").toLowerCase();
+      const matchesTerm = t.includes(term) || d.includes(term) || l.includes(term);
+      const matchesType = !type || i.type===type;
+      const matchesStatus = !status || i.status===status;
+      return matchesTerm && matchesType && matchesStatus;
+    });
+
+    // Sort
+    all.sort((a,b)=>{
+      const ad=new Date(a.date).getTime()||0, bd=new Date(b.date).getTime()||0;
+      if(sort==="newest") return bd-ad;
+      if(sort==="oldest") return ad-bd;
+      if(sort==="typeAsc") return (a.type||"").localeCompare(b.type||"");
+      if(sort==="typeDesc") return (b.type||"").localeCompare(a.type||"");
+      if(sort==="statusLost") return (a.status==="Lost"?-1:1);
+      if(sort==="statusFound") return (a.status==="Found"?-1:1);
+      return 0;
+    });
+
+    // Render
+    renderItems(all);
   }
 
-  // ===== Items rendering =====
-  let firestoreItems = [];
-  function renderItems(items) {
-    itemsGrid.innerHTML = "";
-    const user = firebase.auth().currentUser;
-    if (!items.length) {
-      itemsGrid.innerHTML = "<p>No items found.</p>";
+  function renderItems(items){
+    itemsGrid.innerHTML="";
+    const u=firebase.auth().currentUser;
+    resultsMeta.textContent=`${items.length} item${items.length===1?"":"s"} found`;
+
+    if(!items.length){
+      itemsGrid.innerHTML='<p style="grid-column:1/-1;text-align:center;padding:2rem;">No items found. Try adjusting filters.</p>';
       return;
     }
-    items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "item-card fade-in";
-      card.innerHTML = `
-        <div class="item-image"><img src="${item.image || 'view.jpg'}" alt="${item.title}"></div>
-        <div class="item-details">
-          <h3>${item.title}</h3>
-          <div class="item-meta"><span>${item.type}</span><span>${item.status}</span></div>
-          <p>${item.description}</p>
-          <div class="item-contact">
-            <span>${item.contact}</span>
-            <div>
-              <button class="claim-btn">Claim</button>
-              ${canDeleteItem(user, item) ? `<button class="delete-btn">Delete</button>` : ""}
+
+    items.forEach(item=>{
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`
+        <div class="thumb"><img src="${item.image||'view.jpg'}" alt="${item.title}"/></div>
+        <div class="info">
+          <h4 class="title">${item.title}</h4>
+          <div class="meta">
+            <span class="badge">${item.type||"Unknown"}</span>
+            <span class="badge status ${item.status==='Lost'?'lost':''}">${item.status||"Unknown"}</span>
+            <span class="badge">${fmtDate(item.date||new Date().toISOString())}</span>
+          </div>
+          <p class="desc">${(item.description||"").slice(0,140)}${(item.description||"").length>140?"...":""}</p>
+          <div class="actions">
+            <span class="contact">${item.contact||"No contact"}</span>
+            <div style="display:flex;gap:.4rem">
+              <button class="btn btn-claim">${item.status==='Found'?'Claim':'Contact Finder'}</button>
+              ${canDelete(u,item)?'<button class="btn btn-delete">Delete</button>':''}
             </div>
           </div>
-        </div>`;
-      // Claim
-      card.querySelector(".claim-btn").onclick = (e) => {
+        </div>
+      `;
+
+      // Claim/contact
+      card.querySelector(".btn-claim").onclick=(e)=>{
         e.stopPropagation();
-        requireAuth(() => showToast(`Contact: ${item.contact}`));
+        requireAuth(()=>showToast(`Contact: ${item.contact||"Unavailable"}`));
       };
-      // Delete
-      const delBtn = card.querySelector(".delete-btn");
-      if (delBtn) {
-        delBtn.onclick = async (e) => {
+
+      // Delete (admin or owner)
+      const del=card.querySelector(".btn-delete");
+      if(del){
+        del.onclick=async (e)=>{
           e.stopPropagation();
-          if (confirm("Delete this item?")) {
-            if (item.id.startsWith("demo")) {
-              demoItems = demoItems.filter(d => d.id !== item.id);
-              applyFiltersAndRender();
-            } else {
-              await db.collection("items").doc(item.id).delete();
-            }
-            showToast("Item deleted");
+          if(!canDelete(u,item)) return showToast("Not authorized.");
+          if(confirm("Delete this item?")){
+            try{
+              if(String(item.id).startsWith("demo")){
+                demoItems=demoItems.filter(d=>d.id!==item.id);
+                applyFiltersAndRender();
+              }else{
+                await db.collection("items").doc(item.id).delete();
+              }
+              showToast("Item deleted");
+            }catch(err){showToast(err.message);}
           }
         };
       }
+
       itemsGrid.appendChild(card);
     });
   }
 
-  // ===== Firestore listener =====
-  db.collection("items").onSnapshot(snapshot => {
-    firestoreItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    applyFiltersAndRender();
-  });
-
-  // ===== Search & filter =====
-  function applyFiltersAndRender() {
-    const term = searchInput.value.toLowerCase();
-    const type = filterType.value;
-    const status = filterStatus.value;
-    const allItems = [...demoItems, ...firestoreItems];
-    const filtered = allItems.filter(item => {
-      const matchesTerm = item.title.toLowerCase().includes(term) || item.description.toLowerCase().includes(term);
-      const matchesType = !type || item.type === type;
-      const matchesStatus = !status || item.status === status;
-      return matchesTerm && matchesType && matchesStatus;
-    });
-    renderItems(filtered);
-  }
-  searchInput.oninput = applyFiltersAndRender;
-  filterType.onchange = applyFiltersAndRender;
-  filterStatus.onchange = applyFiltersAndRender;
-
-  // ===== Form submission =====
-  itemForm.onsubmit = async (e) => {
+  // Form submit: image upload + create
+  document.getElementById("date").valueAsDate=new Date();
+  itemForm.onsubmit=async (e)=>{
     e.preventDefault();
-    requireAuth(async () => {
-      const user = firebase.auth().currentUser;
-      const file = document.getElementById("image").files[0];
-      let imageUrl = "";
-      if (file) {
-        const ref = storage.ref(`items/${Date.now()}_${file.name}`);
-        await ref.put(file);
-        imageUrl = await ref.getDownloadURL();
-      }
-      const newItem = {
-        type: document.getElementById("itemType").value,
-        status: document.getElementById("status").value,
-        title: document.getElementById("itemTitle").value,
-        description: document.getElementById("description").value,
-        location: document.getElementById("location").value,
-        date: document.getElementById("date").value,
-        contact: document.getElementById("contact").value,
-        image: imageUrl,
-        createdBy: user.email
-      };
-      await db.collection("items").add(newItem);
-      showToast("Item reported successfully!");
-      itemForm.reset();
+    requireAuth(async ()=>{
+      try{
+        const u=firebase.auth().currentUser;
+        const file=document.getElementById("image").files[0];
+        let imageUrl="";
+        if(file){
+          const ref=storage.ref(`items/${Date.now()}_${file.name}`);
+          await ref.put(file);
+          imageUrl=await ref.getDownloadURL();
+        }
+        const newItem={
+          type:document.getElementById("itemType").value,
+          status:document.getElementById("status").value,
+          title:document.getElementById("itemTitle").value,
+          description:document.getElementById("description").value,
+          location:document.getElementById("location").value,
+          date:document.getElementById("date").value,
+          contact:document.getElementById("contact").value,
+          image:imageUrl,
+          createdBy:u.email
+        };
+        await db.collection("items").add(newItem);
+        showToast("Item reported successfully!");
+        itemForm.reset();
+        document.getElementById("date").valueAsDate=new Date();
+      }catch(err){showToast(err.message);}
     });
   };
 </script>
-
-
+</body>
 </html>
