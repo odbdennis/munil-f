@@ -16,7 +16,7 @@
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css"/>
 
-  <!-- Styles: css-style layout, Muni blue palette -->
+  <!-- Styles: css-style layout -->
   <style>
     :root{
       --primary:#2c3e50;
@@ -27,16 +27,16 @@
       --light:#ecf0f1;
       --dark:#2c3e50;
       --text:#2c3e50;
+      --unapproved: #f39c12; /* Orange for unapproved */
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;background:#f5f7fa;color:var(--text)}
     a{text-decoration:none;color:inherit}
     
-      .searchbar input {
+    .searchbar input {
       flex: none; /* prevent stretching */
       width: 220px; /* fixed smaller width */
-      }
-
+    }
 
     /* Top nav */
     header{background:#fff;border-bottom:1px solid #eaecef;position:sticky;top:0;z-index:100}
@@ -51,11 +51,11 @@
     .userbox .user-email{color:var(--secondary);font-weight:600}
     .userbox .btn{color:#fff;background:var(--accent);padding:.5rem .8rem;border-radius:6px}
 
-    /* Category bar (Jumia-like) */
-    .catbar{background:linear-gradient(90deg,#2c3e50,#3498db);color:#fff}
-    .catwrap{max-width:1200px;margin:0 auto;display:flex;gap:1rem;padding:.6rem 1rem;flex-wrap:wrap}
-    .cat{padding:.35rem .7rem;border:1px solid rgba(255,255,255,.25);border-radius:20px;cursor:pointer}
-    .cat.active{background:#fff;color:var(--secondary);border-color:#fff}
+    /* Navigation Bar  */
+    .navbar{background:linear-gradient(90deg,#2c3e50,#3498db);color:#fff}
+    .navwrap{max-width:1200px;margin:0 auto;display:flex;gap:1.5rem;padding:.6rem 1rem;flex-wrap:wrap; justify-content: flex-start;}
+    .nav-link{padding:.35rem .2rem;border:none;cursor:pointer;font-weight: 500; transition: text-decoration 0.2s;} 
+    .nav-link:hover {text-decoration: underline;}
 
     /* Hero banner */
     .hero{max-width:1200px;margin:1rem auto;background:linear-gradient(rgba(44,62,80,.6),rgba(44,62,80,.6)),url('view.jpg') center/cover;border-radius:12px;color:#fff;padding:2rem 1rem;text-align:center}
@@ -70,16 +70,45 @@
     .filters{background:#fff;border:1px solid #eaecef;border-radius:10px;padding:1rem}
     .filters h3{margin:.25rem 0 .75rem;color:var(--primary)}
     .filters .group{margin-bottom:1rem}
-    .filters select,.filters input{width:100%;padding:.5rem .6rem;border:1px solid #dfe3e6;border-radius:6px}
+    .filters select,.filters input,.filters textarea{width:100%;padding:.5rem .6rem;border:1px solid #dfe3e6;border-radius:6px;margin-top: .3rem}
+    .filters label{font-size: .9rem; color: #555;}
     .filters .sort{margin-top:.75rem}
+    .filters #itemForm{display:none;} /* Hidden by default */
 
     /* Results header */
     .results-head{display:flex;justify-content:space-between;align-items:center;margin:.5rem 0;color:#555}
 
     /* Item cards grid */
     .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-    .card{background:#fff;border:1px solid #eaecef;border-radius:10px;overflow:hidden;transition:box-shadow .2s,transform .15s}
+    .card{background:#fff;border:1px solid #eaecef;border-radius:10px;overflow:hidden;transition:box-shadow .2s,transform .15s; position: relative;}
     .card:hover{box-shadow:0 10px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+    
+    .unapproved-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--unapproved);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-align: center;
+        border: 3px solid var(--unapproved);
+        border-radius: 10px;
+        padding: 1rem;
+        z-index: 10;
+    }
+    .unapproved-overlay .btn-approve {
+        background: var(--success);
+        margin-top: 1rem;
+        color: white;
+    }
+
     .thumb{height:170px;background:#f0f3f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
     .thumb img{width:100%;height:100%;object-fit:cover}
     .info{padding:.8rem}
@@ -92,14 +121,53 @@
     .actions{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
     .contact{color:var(--secondary);font-weight:600;font-size:.9rem}
     .btn{border:none;border-radius:6px;padding:.45rem .7rem;cursor:pointer}
-    .btn-claim{background:var(--success);color:#fff}
+    .btn-claim{background:var(--secondary);color:#fff}
     .btn-delete{background:var(--accent);color:#fff}
+    .btn-contact-finder {background: var(--success); color: #fff;}
+
 
     /* Modal (auth + details) */
     .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
-    .modal .box{background:#fff;border-radius:10px;padding:1rem;max-width:420px;width:92%}
-    .modal h3{margin:.25rem 0 1rem}
+    .modal .box{background:#fff;border-radius:10px;padding:1rem;max-width:420px;width:92%;position:relative;}
+    .modal h3{margin:.25rem 0 1rem;text-align:center;}
     .modal .close{position:absolute;top:10px;right:12px;color:#777;cursor:pointer}
+    
+    /* Form Switch for Login/Signup */
+    .form-switch {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .form-switch button {
+      flex: 1;
+      padding: .75rem;
+      border: none;
+      background: var(--light);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .2s;
+    }
+    .form-switch button.active {
+      background: var(--secondary);
+      color: #fff;
+    }
+    .auth-input {
+      width:100%;
+      padding:.5rem;
+      border:1px solid #dfe3e6;
+      border-radius:6px;
+      margin:.5rem 0;
+    }
+    .auth-link {
+      display: block;
+      margin-top: .75rem;
+      text-align: center;
+      font-size: .9rem;
+      color: var(--secondary);
+    }
+
 
     /* Toast */
     .toast{position:fixed;bottom:20px;right:20px;background:var(--success);color:#fff;padding:.7rem 1rem;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.25s;z-index:300}
@@ -115,7 +183,8 @@
   <header>
     <div class="topbar">
       <div class="brand">
-        <img src="logo.png" alt="Muni L&F"/>
+        <!-- Using a placeholder image for better compliance -->
+        <img src="https://placehold.co/40x40/3498db/ffffff?text=L%26F" alt="Muni L&F"/>
         <h1>Muni L&F Hub</h1>
       <div class="searchbar">
      <!-- Reduced width search box -->
@@ -125,33 +194,29 @@
 
 <div class="userbox">
   
-  <!-- New Help button -->
-  <a href="#about" class="btn" style="background:var(--warning);color:#fff;">Help</a>
+  <!-- "Help" button removed since "Help" is now in the main navigation bar -->
 </div>
 
       <div class="userbox">
+        <!-- Admin Dashboard Link is now hidden/removed as the management is inline -->
         <span id="userEmail" class="user-email"></span>
         <a href="#" id="logoutLink" class="btn" style="display:none;">Logout</a>
-        <button id="openAuth" class="btn" style="background:var(--secondary);">Login / Sign up</button>
+        <button id="openLoginModal" class="btn" style="background:var(--secondary);">Login / Sign up</button> 
       </div>
     </div>
   </header>
 
-  <!-- Categories bar -->
-  <div class="catbar">
-    <div class="catwrap">
-      <div class="cat active" data-type="">All</div>
-      <div class="cat" data-type="Electronics">Electronics</div>
-      <div class="cat" data-type="Books & Notes">Books & Notes</div>
-      <div class="cat" data-type="Clothing">Clothing</div>
-      <div class="cat" data-type="Accessories">Accessories</div>
-      <div class="cat" data-type="Keys">Keys</div>
-      <div class="cat" data-type="ID Cards">ID Cards</div>
-      <div class="cat" data-type="Water Bottles">Water Bottles</div>
-      <div class="cat" data-type="Bags & Backpacks">Bags & Backpacks</div>
-      <div class="cat" data-type="Other">Other</div>
+  <!-- Navigation Bar (Menu) - Replaces Categories bar -->
+  <nav class="navbar">
+    <div class="navwrap">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#browse" class="nav-link">Browse Items</a>
+      <a href="#report" class="nav-link">Report Item</a>
+      <a href="#contact" class="nav-link">Contact Us</a>
+      <a href="#help" class="nav-link">Help</a>
+      <a href="#about" class="nav-link">About Us</a>
     </div>
-  </div>
+  </nav>
 
   <!-- Hero -->
   <section class="hero">
@@ -175,7 +240,7 @@
     <aside class="filters">
       <h3>Filters</h3>
       <div class="group">
-        <label>Type</label>
+        <label for="filterType">Type</label>
         <select id="filterType">
           <option value="">All Types</option>
           <option>Electronics</option>
@@ -190,7 +255,7 @@
         </select>
       </div>
       <div class="group">
-        <label>Status</label>
+        <label for="filterStatus">Status</label>
         <select id="filterStatus">
           <option value="">All Status</option>
           <option>Lost</option>
@@ -198,7 +263,7 @@
         </select>
       </div>
       <div class="group">
-        <label>Sort by</label>
+        <label for="sortBy">Sort by</label>
         <select id="sortBy">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
@@ -209,13 +274,28 @@
         </select>
       </div>
       <hr style="margin:1rem 0;opacity:.3"/>
-      <h3>Report item</h3>
+      
+      <!-- Report Item Form (Toggled by JS) -->
+      <h3 id="reportTitle">Report item</h3>
+      <p id="reportMessage" style="color:var(--accent); font-size:.9rem; text-align: center;">Please log in to report an item.</p>
+
       <form id="itemForm">
-        <input id="itemTitle" placeholder="Title" required/>
-        <textarea id="description" placeholder="Description" required></textarea>
-        <input id="location" placeholder="Location" required/>
+        <label for="itemTitle">Title</label>
+        <input id="itemTitle" placeholder="Brief descriptive title (e.g., Blue iPhone 13)" required/>
+
+        <label for="description" style="margin-top: .75rem; display: block;">Description</label>
+        <textarea id="description" placeholder="Details: color, condition, where exactly it was found/lost." required></textarea>
+
+        <label for="location" style="margin-top: .75rem; display: block;">Location</label>
+        <input id="location" placeholder="Building, Room or Area" required/>
+
+        <label for="date">Date</label>
         <input type="date" id="date" required/>
-        <input id="contact" placeholder="Contact (email/phone)" required/>
+
+        <label for="contact" style="margin-top: .75rem; display: block;">Contact</label>
+        <input id="contact" placeholder="Preferred contact (email/phone)" required/>
+
+        <label for="itemType" style="margin-top: .75rem; display: block;">Item Type</label>
         <select id="itemType" required>
           <option value="">Item type</option>
           <option>Electronics</option>
@@ -228,24 +308,29 @@
           <option>Bags & Backpacks</option>
           <option>Other</option>
         </select>
+
+        <label for="status" style="margin-top: .75rem; display: block;">Status</label>
         <select id="status" required>
           <option value="">Status</option>
           <option>Lost</option>
           <option>Found</option>
         </select>
+
+        <label for="image" style="margin-top: .75rem; display: block;">Image (Optional)</label>
         <input type="file" id="image" accept="image/*"/>
-        <button type="submit" class="btn" style="background:var(--secondary);color:#fff;width:100%;">Submit</button>
+
+        <button type="submit" class="btn" style="background:var(--secondary);color:#fff;width:100%;margin-top:1rem;">Submit for Review</button>
       </form>
     </aside>
 
     <!-- Right column -->
     <section>
-      <!-- Sample showcase -->
+      <!-- Sample showcase is retained but will be overwritten by live data -->
       <div id="homepage-samples" style="margin-bottom:2rem;">
         <h2 style="color:var(--primary);margin-bottom:1rem;">Latest Lost & Found</h2>
         <div class="items">
           <div class="card">
-            <div class="thumb"><img src="water bottle.webp" alt="Blue Hydro Flask"></div>
+            <div class="thumb"><img src="https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle" onerror="this.onerror=null; this.src='https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle';" alt="Blue Hydro Flask"></div>
             <div class="info">
               <h4 class="title">Blue Hydro Flask</h4>
               <div class="meta"><span class="badge">Water Bottle</span><span class="badge status">Found</span></div>
@@ -254,7 +339,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="thumb"><img src="calculus.webp" alt="Calculus Textbook"></div>
+            <div class="thumb"><img src="https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book" onerror="this.onerror=null; this.src='https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book';" alt="Calculus Textbook"></div>
             <div class="info">
               <h4 class="title">Calculus Textbook</h4>
               <div class="meta"><span class="badge">Books & Notes</span><span class="badge status lost">Lost</span></div>
@@ -263,7 +348,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="thumb"><img src="earbuds.jpg" alt="Wireless Earbuds"></div>
+            <div class="thumb"><img src="https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech" onerror="this.onerror=null; this.src='https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech';" alt="Wireless Earbuds"></div>
             <div class="info">
               <h4 class="title">Wireless Earbuds</h4>
               <div class="meta"><span class="badge">Electronics</span><span class="badge status">Found</span></div>
@@ -284,17 +369,44 @@
 </main>
 
 
-  <!-- Auth Modal -->
-  <div class="modal" id="authModal">
-    <div class="box" style="position:relative">
-      <span class="close" id="closeAuth"><i class="fa fa-times"></i></span>
-      <h3>Login / Sign up</h3>
-      <input id="authEmail" placeholder="Email" style="width:100%;padding:.5rem;border:1px solid #dfe3e6;border-radius:6px;margin:.25rem 0"/>
-      <input id="authPassword" type="password" placeholder="Password" style="width:100%;padding:.5rem;border:1px solid #dfe3e6;border-radius:6px;margin:.25rem 0"/>
-      <div style="display:flex;gap:.5rem;margin-top:.5rem">
-        <button id="loginBtn" class="btn" style="background:var(--secondary);color:#fff;flex:1">Login</button>
-        <button id="signupBtn" class="btn" style="background:var(--accent);color:#fff;flex:1">Sign up</button>
+  <!-- Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="box">
+      <span class="close" id="closeLogin"><i class="fa fa-times"></i></span>
+      <h3>Login to Muni L&F Hub</h3>
+      <!-- Form Switch -->
+      <div class="form-switch">
+          <button id="switchToLogin" class="active">Login</button>
+          <button id="switchToSignup">Sign Up</button>
       </div>
+      
+      <input id="loginEmail" class="auth-input" placeholder="Email" required/>
+      <input id="loginPassword" class="auth-input" type="password" placeholder="Password" required/>
+      
+      <button id="loginBtn" class="btn" style="background:var(--secondary);color:#fff;width:100%;margin-top:.5rem">Log In</button>
+      
+      <a href="#" id="forgotPasswordLink" class="auth-link">Forgot Password?</a>
+    </div>
+  </div>
+
+  <!-- Sign Up Modal -->
+  <div class="modal" id="signupModal">
+    <div class="box">
+      <span class="close" id="closeSignup"><i class="fa fa-times"></i></span>
+      <h3>Create an Account</h3>
+      <!-- Form Switch -->
+      <div class="form-switch">
+          <button id="switchToLogin2">Login</button>
+          <button id="switchToSignup2" class="active">Sign Up</button>
+      </div>
+
+      <p style="text-align:center;color:var(--text);font-size:.9rem;">*Standard user registration only. Admins must be registered manually.</p>
+      
+      <input id="signupEmail" class="auth-input" placeholder="Email (e.g., your@student.muni.edu)" required/>
+      <input id="signupPassword" class="auth-input" type="password" placeholder="Password (min 6 characters)" required/>
+      
+      <button id="signupBtn" class="btn" style="background:var(--accent);color:#fff;width:100%;margin-top:.5rem">Sign Up</button>
+      
     </div>
   </div>
 
@@ -309,18 +421,25 @@
       <p style="color:#bbb;font-size:.9rem;">&copy; 2025 Muni University. All rights reserved.</p>
     </div>
     <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+      <a href="#" style="color:#fff;">Home</a>
       <a href="#browse" style="color:#fff;">Browse Items</a>
       <a href="#report" style="color:#fff;">Report Item</a>
-      <a href="#about" style="color:#fff;">About</a>
-      <a href="#" style="color:#fff;">Contact Us</a>
+      <a href="#contact" style="color:#fff;">Contact Us</a>
+      <a href="#help" style="color:#fff;">Help</a>
+      <a href="#about" style="color:#fff;">About Us</a>
       <a href="#" style="color:#fff;">Privacy Policy</a>
     </div>
   </div>
 </footer>
 
 
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+  import { getFirestore, updateDoc, doc, collection, onSnapshot, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
-<script>
   // Hero rotation
   const messages=["Did you find something on campus?","Or lost something on campus?"];
   let mIndex=0;
@@ -329,38 +448,31 @@
   changingText.textContent=messages[mIndex];
 
   // Firebase init
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCWv1BfWQYMYmkLk3ydEpgwxhKo9pulO7Q",
+    authDomain: "muni-lf-hub.firebaseapp.com",
+    projectId: "muni-lf-hub",
+    storageBucket: "muni-lf-hub.firebasestorage.app",
+    messagingSenderId: "400377697268",
+    appId: "1:400377697268:web:52726a678e8c19ee97dfa1",
+    measurementId: "G-85THF0LN41"
+  };
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCWv1BfWQYMYmkLk3ydEpgwxhKo9pulO7Q",
-  authDomain: "muni-lf-hub.firebaseapp.com",
-  projectId: "muni-lf-hub",
-  storageBucket: "muni-lf-hub.firebasestorage.app",
-  messagingSenderId: "400377697268",
-  appId: "1:400377697268:web:52726a678e8c19ee97dfa1",
-  measurementId: "G-85THF0LN41"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const storage = firebase.storage();
-
-
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app); 
+  const storage = getStorage(app);
+  
   // Admin email
   const ADMIN_EMAIL="admin@munilf.com";
 
-  // Demo items (visible instantly)
+  // Demo items (visible instantly) - Added isApproved:true for public visibility
   let demoItems=[
-    {id:"demo1",type:"Water Bottles",status:"Found",title:"Blue Hydro Flask",description:"Found near library entrance.",location:"Main Library",date:"2025-10-15",contact:"library@muni.edu",image:"water bottle.webp",createdBy:"demo@muni.edu"},
-    {id:"demo2",type:"Books & Notes",status:"Lost",title:"Calculus Textbook",description:"Lost near math building.",location:"Math Building",date:"2025-10-14",contact:"john.doe@student.muni.edu",image:"calculus.webp",createdBy:"demo@muni.edu"},
-    {id:"demo3",type:"Electronics",status:"Found",title:"Wireless Earbuds",description:"Found black earbuds in cafeteria.",location:"Cafeteria",date:"2025-10-13",contact:"cafeteria@muni.edu",image:"earbuds.jpg",createdBy:"demo@muni.edu"}
+    {id:"demo1",type:"Water Bottles",status:"Found",title:"Blue Hydro Flask",description:"Found near library entrance.",location:"Main Library",date:"2025-10-15",contact:"library@muni.edu",image:"https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle", createdBy:"demo@muni.edu", isApproved:true},
+    {id:"demo2",type:"Books & Notes",status:"Lost",title:"Calculus Textbook",description:"Lost near math building.",location:"Math Building",date:"2025-10-14",contact:"john.doe@student.muni.edu",image:"https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book", createdBy:"demo@muni.edu", isApproved:true},
+    {id:"demo3",type:"Electronics",status:"Found",title:"Wireless Earbuds",description:"Found black earbuds in cafeteria.",location:"Cafeteria",date:"2025-10-13",contact:"cafeteria@muni.edu",image:"https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech", createdBy:"demo@muni.edu", isApproved:true}
   ];
 
   // Refs
@@ -371,68 +483,173 @@ const storage = firebase.storage();
   const filterStatus=document.getElementById("filterStatus");
   const sortBy=document.getElementById("sortBy");
   const resultsMeta=document.getElementById("resultsMeta");
-  const openAuth=document.getElementById("openAuth");
-  const authModal=document.getElementById("authModal");
-  const closeAuth=document.getElementById("closeAuth");
-  const authEmail=document.getElementById("authEmail");
-  const authPassword=document.getElementById("authPassword");
+  const searchBtn=document.getElementById("searchBtn");
+  const reportMessage=document.getElementById("reportMessage");
+
+  // Auth Refs
+  const loginModal=document.getElementById("loginModal");
+  const signupModal=document.getElementById("signupModal");
+  const openLoginModal=document.getElementById("openLoginModal");
+  const closeLogin=document.getElementById("closeLogin");
+  const closeSignup=document.getElementById("closeSignup");
+  const loginEmail=document.getElementById("loginEmail");
+  const loginPassword=document.getElementById("loginPassword");
+  const signupEmail=document.getElementById("signupEmail");
+  const signupPassword=document.getElementById("signupPassword");
   const loginBtn=document.getElementById("loginBtn");
   const signupBtn=document.getElementById("signupBtn");
   const userEmail=document.getElementById("userEmail");
   const logoutLink=document.getElementById("logoutLink");
+  const forgotPasswordLink=document.getElementById("forgotPasswordLink");
+  
+  // Tab Switch Refs
+  const switchToLogin=document.getElementById("switchToLogin");
+  const switchToSignup=document.getElementById("switchToSignup");
+  const switchToLogin2=document.getElementById("switchToLogin2");
+  const switchToSignup2=document.getElementById("switchToSignup2");
+  
+
   const toast=document.getElementById("toast");
   const toastMessage=document.getElementById("toastMessage");
-  const searchBtn=document.getElementById("searchBtn");
+
 
   // Helpers
-  function showToast(msg){toastMessage.textContent=msg;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2500);}
+  function showToast(msg, isError = false){
+    toastMessage.textContent=msg;
+    toast.style.backgroundColor = isError ? "var(--accent)" : "var(--success)";
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"),2500);
+  }
+  
   function isAdmin(u){return u && u.email===ADMIN_EMAIL;}
-  function canDelete(u,item){return u && (isAdmin(u) || item.createdBy===u.email);}
-  function requireAuth(cb){const u=firebase.auth().currentUser;if(u)cb();else authModal.style.display="flex";}
+  // Authorization check: Admin can delete all, User can only delete their own
+  function canDelete(u, item){return u && (isAdmin(u) || item.createdBy===u.email);}
   function fmtDate(d){try{const o={year:"numeric",month:"short",day:"numeric"};return new Date(d).toLocaleDateString(undefined,o);}catch{return d}}
+  
+  function showModal(modalId){
+    // Hide all auth modals first
+    [loginModal, signupModal].forEach(m => m.style.display = 'none');
+    // Show the desired modal
+    const modal = document.getElementById(modalId);
+    if(modal) modal.style.display = 'flex';
+  }
+  
+  function requireAuth(cb){
+    const u=auth.currentUser;
+    if(u) cb();
+    else {
+      showToast("You must be logged in to perform this action.", true);
+      showModal("loginModal"); // Show login if not authenticated
+    }
+  }
 
-  // Auth
-  openAuth.onclick=()=>authModal.style.display="flex";
-  closeAuth.onclick=()=>authModal.style.display="none";
-  window.addEventListener("click",(e)=>{if(e.target===authModal)authModal.style.display="none";});
 
-  firebase.auth().onAuthStateChanged(user=>{
-    if(user){userEmail.textContent=user.email;logoutLink.style.display="inline";}
-    else{userEmail.textContent="";logoutLink.style.display="none";}
+  // --- Auth Event Listeners (Login/Signup Pop-ups) ---
+
+  openLoginModal.onclick=()=>showModal("loginModal");
+  closeLogin.onclick=()=>loginModal.style.display="none";
+  closeSignup.onclick=()=>signupModal.style.display="none";
+  
+  window.addEventListener("click",(e)=>{
+    if(e.target===loginModal) loginModal.style.display="none";
+    if(e.target===signupModal) signupModal.style.display="none";
+  });
+  
+  // Tab/Switching logic
+  switchToSignup.onclick = () => showModal("signupModal");
+  switchToLogin.onclick = () => showModal("loginModal");
+  switchToSignup2.onclick = () => showModal("signupModal");
+  switchToLogin2.onclick = () => showModal("loginModal");
+
+  // Firebase Auth State Listener
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      userEmail.textContent=`Hello, ${user.email.split('@')[0]}`; // Show part of email
+      logoutLink.style.display="inline";
+      openLoginModal.style.display = 'none';
+
+      // Show/Hide Report Form
+      itemForm.style.display = 'block';
+      reportMessage.style.display = 'none';
+
+      if(isAdmin(user)){
+        showToast("Logged in as Admin!");
+      }
+
+    }
+    else{
+      userEmail.textContent="";
+      logoutLink.style.display="none";
+      openLoginModal.style.display = 'inline-block';
+
+      // Show/Hide Report Form
+      itemForm.style.display = 'none';
+      reportMessage.style.display = 'block';
+    }
     applyFiltersAndRender();
   });
 
+  // User Sign Up
   signupBtn.onclick=()=>{
-    const email=authEmail.value.trim(), pw=authPassword.value;
-    if(!email||!pw) return showToast("Provide email and password.");
-    firebase.auth().createUserWithEmailAndPassword(email,pw)
-      .then(()=>{showToast("Registered");authModal.style.display="none";})
-      .catch(err=>showToast(err.message));
+    const email=signupEmail.value.trim(), pw=signupPassword.value;
+    if(!email||!pw) return showToast("Provide email and password.", true);
+    if(email === ADMIN_EMAIL) return showToast("Admin accounts cannot be created via the public sign-up form.", true);
+
+    auth.createUserWithEmailAndPassword(email,pw)
+      .then(()=>{
+        showToast("Registration successful! Please log in.");
+        showModal("loginModal");
+      })
+      .catch(err=>showToast(err.message, true));
   };
+  
+  // User/Admin Login
   loginBtn.onclick=()=>{
-    const email=authEmail.value.trim(), pw=authPassword.value;
-    if(!email||!pw) return showToast("Provide email and password.");
-    firebase.auth().signInWithEmailAndPassword(email,pw)
-      .then(()=>{showToast("Logged in");authModal.style.display="none";})
-      .catch(err=>showToast(err.message));
+    const email=loginEmail.value.trim(), pw=loginPassword.value;
+    if(!email||!pw) return showToast("Provide email and password.", true);
+    
+    auth.signInWithEmailAndPassword(email,pw)
+      .then(()=>{
+        showToast("Logged in successfully!");
+        loginModal.style.display="none";
+      })
+      .catch(err=>showToast(err.message, true));
   };
-  logoutLink.onclick=(e)=>{e.preventDefault();firebase.auth().signOut().then(()=>showToast("Logged out"));};
+  
+  // Forgot Password
+  forgotPasswordLink.onclick=(e)=>{
+    e.preventDefault();
+    const email = loginEmail.value.trim();
+    if (!email) {
+        showToast("Please enter your email in the login form first.", true);
+        return;
+    }
+    
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        showToast("Password reset link sent to your email.");
+      })
+      .catch(err => {
+        showToast(err.message, true);
+      });
+  }
+
+  // Logout
+  logoutLink.onclick=(e)=>{
+    e.preventDefault();
+    auth.signOut().then(()=>showToast("Logged out"));
+  };
+
+  // --- End Auth Event Listeners ---
+
 
   // Firestore live items
   let liveItems=[];
-  db.collection("items").onSnapshot(snap=>{
+  
+  // FIX: Use modular onSnapshot and collection functions with the 'db' variable
+  onSnapshot(collection(db, "items"), snap=>{
     liveItems=snap.docs.map(d=>({id:d.id,...d.data()}));
     applyFiltersAndRender();
-  });
-
-  // Category clicks
-  document.querySelectorAll(".cat").forEach(el=>{
-    el.onclick=()=>{
-      document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
-      el.classList.add("active");
-      filterType.value=el.getAttribute("data-type")||"";
-      applyFiltersAndRender();
-    };
   });
 
   // Search/filter/sort
@@ -442,16 +659,26 @@ const storage = firebase.storage();
   filterStatus.onchange=applyFiltersAndRender;
   sortBy.onchange=applyFiltersAndRender;
 
-  // Render pipeline
+  // Render pipeline (updated for admin/approval logic)
   function applyFiltersAndRender(){
     const term=(searchInput.value||"").toLowerCase();
     const type=filterType.value||"";
     const status=filterStatus.value||"";
     const sort=sortBy.value||"newest";
+    const u=auth.currentUser;
+    const isUserAdmin = isAdmin(u);
 
     let all=[...demoItems,...liveItems];
 
-    // Filter
+    // --- NEW: Approval Filtering Logic ---
+    all=all.filter(i=>{
+      // Admins see all items
+      if(isUserAdmin) return true;
+      // Standard users see approved items OR items they created
+      return i.isApproved === true || i.createdBy === u?.email;
+    });
+
+    // Filter by search term, type, and status
     all=all.filter(i=>{
       const t=(i.title||"").toLowerCase(), d=(i.description||"").toLowerCase(), l=(i.location||"").toLowerCase();
       const matchesTerm = t.includes(term) || d.includes(term) || l.includes(term);
@@ -478,7 +705,8 @@ const storage = firebase.storage();
 
   function renderItems(items){
     itemsGrid.innerHTML="";
-    const u=firebase.auth().currentUser;
+    const u=auth.currentUser;
+    const isUserAdmin = isAdmin(u);
     resultsMeta.textContent=`${items.length} item${items.length===1?"":"s"} found`;
 
     if(!items.length){
@@ -487,22 +715,40 @@ const storage = firebase.storage();
     }
 
     items.forEach(item=>{
+      const isPending = item.isApproved !== true; // Check if pending approval
+      const isOwner = item.createdBy === u?.email;
+      
       const card=document.createElement("div");
       card.className="card";
+      
+      let overlayHTML = '';
+      if(isPending){
+        overlayHTML = `
+          <div class="unapproved-overlay">
+            <i class="fa fa-clock" style="font-size: 2rem;"></i>
+            ${isOwner ? '<p>Awaiting Admin Review</p>' : '<p>ITEM PENDING REVIEW</p>'}
+            ${isUserAdmin && !isOwner ? '<button class="btn btn-approve" data-id="'+item.id+'">Approve Item</button>' : ''}
+          </div>
+        `;
+      }
+
       card.innerHTML=`
-        <div class="thumb"><img src="${item.image||'view.jpg'}" alt="${item.title}"/></div>
+        ${overlayHTML}
+        <div class="thumb"><img src="${item.image||'https://placehold.co/240x170/3498db/ffffff?text=Image+Missing'}" alt="${item.title}" onerror="this.onerror=null; this.src='https://placehold.co/240x170/3498db/ffffff?text=Image+Missing';"/></div>
         <div class="info">
           <h4 class="title">${item.title}</h4>
           <div class="meta">
             <span class="badge">${item.type||"Unknown"}</span>
             <span class="badge status ${item.status==='Lost'?'lost':''}">${item.status||"Unknown"}</span>
             <span class="badge">${fmtDate(item.date||new Date().toISOString())}</span>
+            <span class="badge" style="color:var(--primary)">By: ${item.createdBy.split('@')[0]}</span>
           </div>
           <p class="desc">${(item.description||"").slice(0,140)}${(item.description||"").length>140?"...":""}</p>
           <div class="actions">
             <span class="contact">${item.contact||"No contact"}</span>
             <div style="display:flex;gap:.4rem">
-              <button class="btn btn-claim">${item.status==='Found'?'Claim':'Contact Finder'}</button>
+              <!-- Contact button is only shown if item is approved (or if user is admin) -->
+              ${(!isPending || isUserAdmin) ? '<button class="btn btn-contact-finder">'+(item.status==='Found'?'Claim':'Contact Finder')+'</button>' : ''}
               ${canDelete(u,item)?'<button class="btn btn-delete">Delete</button>':''}
             </div>
           </div>
@@ -510,27 +756,53 @@ const storage = firebase.storage();
       `;
 
       // Claim/contact
-      card.querySelector(".btn-claim").onclick=(e)=>{
+      card.querySelector(".btn-contact-finder")?.addEventListener('click', (e) => {
         e.stopPropagation();
-        requireAuth(()=>showToast(`Contact: ${item.contact||"Unavailable"}`));
-      };
+        requireAuth(() => showToast(`Contact details: ${item.contact||"Unavailable"}`));
+      });
+      
+      // Admin Approve Button Logic
+      const btnApprove = card.querySelector(".btn-approve");
+      if (btnApprove) {
+        btnApprove.onclick = async (e) => {
+          e.stopPropagation();
+          if(!isUserAdmin) return showToast("Only admins can approve items.", true);
+          try {
+            if (String(item.id).startsWith("demo")) {
+              // Mark demo item as approved in local list
+              const demoItem = demoItems.find(d => d.id === item.id);
+              if(demoItem) demoItem.isApproved = true;
+            } else {
+              // Update firestore item
+              const itemRef = doc(db, "items", item.id);
+              await updateDoc(itemRef, { isApproved: true });
+            }
+            showToast("Item approved successfully!");
+            // Rerender to reflect changes
+            applyFiltersAndRender(); 
+          } catch(err) {
+            showToast("Error approving item: " + err.message, true);
+          }
+        };
+      }
 
       // Delete (admin or owner)
       const del=card.querySelector(".btn-delete");
       if(del){
         del.onclick=async (e)=>{
           e.stopPropagation();
-          if(!canDelete(u,item)) return showToast("Not authorized.");
-          if(confirm("Delete this item?")){
+          if(!canDelete(u,item)) return showToast("Not authorized.", true);
+          if(confirm("Are you sure you want to permanently delete this item?")){
             try{
               if(String(item.id).startsWith("demo")){
                 demoItems=demoItems.filter(d=>d.id!==item.id);
                 applyFiltersAndRender();
               }else{
-                await db.collection("items").doc(item.id).delete();
+                // FIX: Use modular deleteDoc and doc with 'db' variable
+                await deleteDoc(doc(db, "items", item.id));
               }
               showToast("Item deleted");
-            }catch(err){showToast(err.message);}
+            }catch(err){showToast(err.message, true);}
           }
         };
       }
@@ -545,13 +817,15 @@ const storage = firebase.storage();
     e.preventDefault();
     requireAuth(async ()=>{
       try{
-        const u=firebase.auth().currentUser;
+        const u=auth.currentUser;
+        const isUserAdmin = isAdmin(u);
         const file=document.getElementById("image").files[0];
         let imageUrl="";
         if(file){
-          const ref=storage.ref(`items/${Date.now()}_${file.name}`);
-          await ref.put(file);
-          imageUrl=await ref.getDownloadURL();
+          // FIX: Use modular ref, uploadBytes, and getDownloadURL with 'storage' variable
+          const storageReference = ref(storage, `items/${Date.now()}_${file.name}`);
+          const snapshot = await uploadBytes(storageReference, file);
+          imageUrl = await getDownloadURL(snapshot.ref);
         }
         const newItem={
           type:document.getElementById("itemType").value,
@@ -562,13 +836,22 @@ const storage = firebase.storage();
           date:document.getElementById("date").value,
           contact:document.getElementById("contact").value,
           image:imageUrl,
-          createdBy:u.email
+          createdBy:u.email,
+          // NEW: Only set to true if submitted by admin, otherwise pending review
+          isApproved: isUserAdmin 
         };
-        await db.collection("items").add(newItem);
-        showToast("Item reported successfully!");
+        
+        // FIX: Use modular addDoc and collection with 'db' variable
+        await addDoc(collection(db, "items"), newItem); 
+        
+        if(isUserAdmin){
+            showToast("Admin item reported and approved successfully!");
+        } else {
+            showToast("Item submitted for admin review. It will appear publicly once approved.");
+        }
         itemForm.reset();
         document.getElementById("date").valueAsDate=new Date();
-      }catch(err){showToast(err.message);}
+      }catch(err){showToast(err.message, true);}
     });
   };
 </script>
