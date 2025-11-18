@@ -15,7 +15,7 @@
 
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css"/>
-
+              
   <!-- Styles: css-style layout -->
   <style>
     :root{
@@ -184,7 +184,7 @@
     <div class="topbar">
       <div class="brand">
         <!-- Using a placeholder image for better compliance -->
-        <img src="https://placehold.co/40x40/3498db/ffffff?text=L%26F" alt="Muni L&F"/>
+        <img src="logo.png" alt="Muni L&F"/>
         <h1>Muni L&F Hub</h1>
       <div class="searchbar">
      <!-- Reduced width search box -->
@@ -330,7 +330,7 @@
         <h2 style="color:var(--primary);margin-bottom:1rem;">Latest Lost & Found</h2>
         <div class="items">
           <div class="card">
-            <div class="thumb"><img src="https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle" onerror="this.onerror=null; this.src='https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle';" alt="Blue Hydro Flask"></div>
+            <div class="thumb"><img src="water bottle.webp" onerror="this.onerror=null; this.src='https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle';" alt="Blue Hydro Flask"></div>
             <div class="info">
               <h4 class="title">Blue Hydro Flask</h4>
               <div class="meta"><span class="badge">Water Bottle</span><span class="badge status">Found</span></div>
@@ -339,7 +339,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="thumb"><img src="https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book" onerror="this.onerror=null; this.src='https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book';" alt="Calculus Textbook"></div>
+            <div class="thumb"><img src="calculus.webp" onerror="this.onerror=null; this.src='https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book';" alt="Calculus Textbook"></div>
             <div class="info">
               <h4 class="title">Calculus Textbook</h4>
               <div class="meta"><span class="badge">Books & Notes</span><span class="badge status lost">Lost</span></div>
@@ -348,7 +348,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="thumb"><img src="https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech" onerror="this.onerror=null; this.src='https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech';" alt="Wireless Earbuds"></div>
+            <div class="thumb"><img src="earbuds.jpg" onerror="this.onerror=null; this.src='https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech';" alt="Wireless Earbuds"></div>
             <div class="info">
               <h4 class="title">Wireless Earbuds</h4>
               <div class="meta"><span class="badge">Electronics</span><span class="badge status">Found</span></div>
@@ -470,9 +470,9 @@
 
   // Demo items (visible instantly) - Added isApproved:true for public visibility
   let demoItems=[
-    {id:"demo1",type:"Water Bottles",status:"Found",title:"Blue Hydro Flask",description:"Found near library entrance.",location:"Main Library",date:"2025-10-15",contact:"library@muni.edu",image:"https://placehold.co/240x170/3498db/ffffff?text=Found+Bottle", createdBy:"demo@muni.edu", isApproved:true},
-    {id:"demo2",type:"Books & Notes",status:"Lost",title:"Calculus Textbook",description:"Lost near math building.",location:"Math Building",date:"2025-10-14",contact:"john.doe@student.muni.edu",image:"https://placehold.co/240x170/e74c3c/ffffff?text=Lost+Book", createdBy:"demo@muni.edu", isApproved:true},
-    {id:"demo3",type:"Electronics",status:"Found",title:"Wireless Earbuds",description:"Found black earbuds in cafeteria.",location:"Cafeteria",date:"2025-10-13",contact:"cafeteria@muni.edu",image:"https://placehold.co/240x170/2ecc71/ffffff?text=Found+Tech", createdBy:"demo@muni.edu", isApproved:true}
+    {id:"Dennis",type:"Water Bottles",status:"Found",title:"Blue Hydro Flask",description:"Found near library entrance.",location:"Main Library",date:"2025-10-15",contact:"library@muni.edu",image:"water bottle.webp", createdBy:"demo@muni.edu", isApproved:true},
+    {id:"Sonia",type:"Books & Notes",status:"Lost",title:"Calculus Textbook",description:"Lost near math building.",location:"Math Building",date:"2025-10-14",contact:"john.doe@student.muni.edu",image:"calculus.webp", createdBy:"demo@muni.edu", isApproved:true},
+    {id:"Ceasor",type:"Electronics",status:"Found",title:"Wireless Earbuds",description:"Found black earbuds in cafeteria.",location:"Cafeteria",date:"2025-10-13",contact:"cafeteria@muni.edu",image:"earbuds.jpg", createdBy:"demo@muni.edu", isApproved:true}
   ];
 
   // Refs
